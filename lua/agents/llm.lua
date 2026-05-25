@@ -58,4 +58,43 @@ function M.ask_for_poem()
 	vim.notify("🪄 Here's your 4-line poem:\n\n" .. poem, vim.log.levels.INFO)
 end
 
+-- Send a full conversation to xAI and get back the assistant reply (blocking for now)
+function M.chat(messages)
+	local config = require("agents").config
+
+	if not config.api_key or config.api_key == "" then
+		vim.notify("agents.nvim: No XAI_API_KEY set", vim.log.levels.ERROR)
+		return nil
+	end
+
+	local body = {
+		model = "grok-4.3",
+		messages = messages, -- full history: { {role="user", content=...}, ... }
+		temperature = 0.7,
+		-- stream = true  <-- we'll turn this on later for streaming
+		timeout = 120000,
+	}
+
+	local res = curl.post(config.api_url, {
+		headers = {
+			["Content-Type"] = "application/json",
+			["Authorization"] = "Bearer " .. config.api_key,
+		},
+		body = vim.json.encode(body),
+	})
+
+	if res.status ~= 200 then
+		vim.notify("LLM error: " .. (res.body or "unknown"), vim.log.levels.ERROR)
+		return nil
+	end
+
+	local ok, data = pcall(vim.json.decode, res.body)
+	if not ok or not data.choices or not data.choices[1] then
+		vim.notify("Failed to parse response", vim.log.levels.ERROR)
+		return nil
+	end
+
+	return data.choices[1].message.content
+end
+
 return M

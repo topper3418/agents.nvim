@@ -6,6 +6,10 @@ local M = {}
 local defaults = {
 	api_key = vim.env.XAI_API_KEY,
 	api_url = "https://api.x.ai/v1/chat/completions",
+	chat = {
+		style = "split", -- "float" or "split"
+		position = "right", -- for split: "above", "below", "left", "right"
+	},
 }
 
 M.config = {}
@@ -26,10 +30,16 @@ function M.setup(opts)
 		vim.notify("⚠️  agents.nvim: api_key is not set in your Lazy config!", vim.log.levels.WARN)
 	end
 
-	-- Register our first command
+	-- Register our test poem command
 	vim.api.nvim_create_user_command("AgentsPoem", function()
 		require("agents.llm").ask_for_poem()
 	end, { desc = "Ask LLM for a 4-line poem" })
+	-- Register chat command
+	vim.api.nvim_create_user_command("AgentsChat", function()
+		require("agents.chat").open()
+	end, { desc = "Open a new agents.nvim chat window" })
+
+	require("agents.chat").history = {}
 end
 
 return M
