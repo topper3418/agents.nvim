@@ -23,17 +23,13 @@ function M.setup(opts)
 		api_key = api_key,
 	})
 
-	vim.notify("🚀 agents.nvim loaded successfully!", vim.log.levels.INFO)
+	vim.notify("🚀 agents.nvim loaded successfully!", vim.log.levels.DEBUG)
 
 	-- Quick validation so the user knows if they forgot the key
 	if M.config.api_key == "" then
 		vim.notify("⚠️  agents.nvim: api_key is not set in your Lazy config!", vim.log.levels.WARN)
 	end
 
-	-- Register our test poem command
-	vim.api.nvim_create_user_command("AgentsPoem", function()
-		require("agents.llm").ask_for_poem()
-	end, { desc = "Ask LLM for a 4-line poem" })
 	-- Register chat command
 	vim.api.nvim_create_user_command("AgentsChat", function()
 		require("agents.chat").open()

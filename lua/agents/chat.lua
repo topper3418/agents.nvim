@@ -16,6 +16,18 @@ function M.open()
 		vim.api.nvim_buf_set_option(buf, "buftype", "nofile")
 	end
 
+	M.history = M.history or {}
+
+	if not M.system_prompt_added then
+		table.insert(M.history, 1, {
+			role = "system",
+			content = "You are an agentic coding assistant inside Neovim. "
+				.. "Never guess file contents. "
+				.. "Be concise. ",
+		})
+		M.system_prompt_added = true
+	end
+
 	-- Open the window
 	if config.chat.style == "float" then
 		local width = math.floor(vim.o.columns * config.chat.width)
@@ -41,6 +53,10 @@ function M.open()
 	-- Render current history + chat cursor
 	M.render(buf)
 
+	-- Debug: show available tools in a notification
+	local tool_names = vim.tbl_keys(require("agents.tools").available_tools)
+	vim.notify("🛠️  Loaded tools: " .. table.concat(tool_names, ", "), vim.log.levels.INFO)
+
 	-- Set up buffer-local keymaps and protections
 	M.setup_buffer_keymaps(buf)
 end
@@ -53,14 +69,25 @@ function M.render(buf)
 	for _, msg in ipairs(M.history or {}) do
 		if msg.role == "user" then
 			table.insert(lines, "**You:**")
-		else
+			for _, line in ipairs(vim.split(msg.content, "\n")) do
+				table.insert(lines, line)
+			end
+		elseif msg.role == "assistant" then
 			table.insert(lines, "**Grok:**")
+			for _, line in ipairs(vim.split(msg.content, "\n")) do
+				table.insert(lines, line)
+			end
+		elseif msg.role == "tool" then
+			table.insert(lines, "**Tool result:**")
+			-- Show what Grok asked for (great for debugging)
+			local result = vim.json.decode(msg.content) or msg.content
+			local pretty = type(result) == "table" and vim.inspect(result) or tostring(result)
+			for _, line in ipairs(vim.split(pretty, "\n")) do
+				table.insert(lines, line)
+			end
 		end
-		for _, line in ipairs(vim.split(msg.content, "\n")) do
-			table.insert(lines, line)
-		end
-		table.insert(lines, "")
 	end
+	table.insert(lines, "")
 
 	-- Chat cursor / input area
 	table.insert(
@@ -139,14 +166,53 @@ function M.send(buf)
 	vim.api.nvim_buf_set_lines(buf, -1, -1, false, { "Thinking..." })
 	vim.cmd("redraw")
 
-	-- Call the LLM
-	local reply = require("agents.llm").chat(M.history)
+	-- Show that we're calling the LLM
+	-- vim.api.nvim_buf_set_lines(buf, -1, -1, false, { "Thinking..." })
+	vim.cmd("redraw")
 
-	if reply then
-		table.insert(M.history, { role = "assistant", content = reply })
+	-- Call LLM (now returns full message object)
+	local message = require("agents.llm").chat(M.history)
+
+	if not message then
+		return
 	end
 
-	-- Re-render everything with new messages + fresh input line
+	-- Handle tool call or normal reply
+	if message.tool_calls and #message.tool_calls > 0 then
+		-- Execute every tool Grok asked for
+		for _, call in ipairs(message.tool_calls) do
+			local tool_name = call["function"].name
+			local args_str = call["function"].arguments or "{}"
+
+			-- Parse the JSON arguments Grok sent
+			local ok, args = pcall(vim.json.decode, args_str)
+			if not ok then
+				args = {}
+			end
+
+			vim.notify("🛠️ Executing tool: " .. tool_name, vim.log.levels.INFO)
+
+			-- Actually run the tool
+			local result = require("agents.tools").call(tool_name, args)
+
+			-- Add the tool result back into the conversation history
+			table.insert(M.history, {
+				role = "tool",
+				tool_call_id = call.id,
+				content = vim.json.encode(result), -- Grok understands JSON results
+			})
+		end
+
+		-- Now call the LLM again with the tool results
+		local final_message = require("agents.llm").chat(M.history)
+		if final_message and final_message.content then
+			table.insert(M.history, { role = "assistant", content = final_message.content })
+		end
+	elseif message.content then
+		-- Normal text reply (no tool used)
+		table.insert(M.history, { role = "assistant", content = message.content })
+	end
+
 	M.render(buf)
 end
 
