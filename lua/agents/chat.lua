@@ -22,8 +22,11 @@ function M.open()
 		table.insert(M.history, 1, {
 			role = "system",
 			content = "You are an agentic coding assistant inside Neovim. "
-				.. "Never guess file contents. "
-				.. "Be concise. ",
+				.. "You have access to tools that allow you to use the application's current context to give better answers"
+				.. "IMPORTANT: You can (and should) make MULTIPLE tool calls in sequence. "
+				.. "After receiving a tool result, decide if you need to call another tool before giving a final answer to the user. "
+				.. "Only give a final answer when you have all the information you need. "
+				.. "Never guess file contents. Be concise.",
 		})
 		M.system_prompt_added = true
 	end
@@ -170,47 +173,46 @@ function M.send(buf)
 	-- vim.api.nvim_buf_set_lines(buf, -1, -1, false, { "Thinking..." })
 	vim.cmd("redraw")
 
-	-- Call LLM (now returns full message object)
-	local message = require("agents.llm").chat(M.history)
+	-- === AGENT LOOP ===
+	while true do
+		local message = require("agents.llm").chat(M.history)
 
-	if not message then
-		return
-	end
+		if not message then
+			break
+		end
 
-	-- Handle tool call or normal reply
-	if message.tool_calls and #message.tool_calls > 0 then
-		-- Execute every tool Grok asked for
-		for _, call in ipairs(message.tool_calls) do
-			local tool_name = call["function"].name
-			local args_str = call["function"].arguments or "{}"
+		if message.tool_calls and #message.tool_calls > 0 then
+			-- Grok wants to use one or more tools
+			for _, call in ipairs(message.tool_calls) do
+				local tool_name = call["function"].name
+				local args_str = call["function"].arguments or "{}"
+				local ok, args = pcall(vim.json.decode, args_str)
+				if not ok then
+					args = {}
+				end
 
-			-- Parse the JSON arguments Grok sent
-			local ok, args = pcall(vim.json.decode, args_str)
-			if not ok then
-				args = {}
+				vim.notify("🛠️ Executing: " .. tool_name, vim.log.levels.INFO)
+
+				local result = require("agents.tools").call(tool_name, args)
+
+				-- Feed the result back to Grok
+				table.insert(M.history, {
+					role = "tool",
+					tool_call_id = call.id,
+					content = vim.json.encode(result),
+				})
 			end
 
-			vim.notify("🛠️ Executing tool: " .. tool_name, vim.log.levels.INFO)
-
-			-- Actually run the tool
-			local result = require("agents.tools").call(tool_name, args)
-
-			-- Add the tool result back into the conversation history
-			table.insert(M.history, {
-				role = "tool",
-				tool_call_id = call.id,
-				content = vim.json.encode(result), -- Grok understands JSON results
-			})
+			-- Continue the loop (Grok gets to see the tool results and decide next step)
+			vim.api.nvim_buf_set_lines(buf, -1, -1, false, { "Thinking (chaining)..." })
+			vim.cmd("redraw")
+		else
+			-- Grok gave a normal text answer → we're done
+			if message.content then
+				table.insert(M.history, { role = "assistant", content = message.content })
+			end
+			break
 		end
-
-		-- Now call the LLM again with the tool results
-		local final_message = require("agents.llm").chat(M.history)
-		if final_message and final_message.content then
-			table.insert(M.history, { role = "assistant", content = final_message.content })
-		end
-	elseif message.content then
-		-- Normal text reply (no tool used)
-		table.insert(M.history, { role = "assistant", content = message.content })
 	end
 
 	M.render(buf)
