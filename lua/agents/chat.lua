@@ -4,8 +4,9 @@
 local M = {}
 
 -- Opens a new chat buffer in the configured style
-function M.open()
-	local config = require("agents").config
+function M.open(config)
+	-- local config = require("agents").config
+	config = config or { style = "split", position = "right" }
 
 	-- Reuse existing chat buffer if it already exists
 	local buf = vim.fn.bufnr("agents-chat")
@@ -32,9 +33,9 @@ function M.open()
 	end
 
 	-- Open the window
-	if config.chat.style == "float" then
-		local width = math.floor(vim.o.columns * config.chat.width)
-		local height = math.floor(vim.o.lines * config.chat.height)
+	if config.style == "float" then
+		local width = math.floor(vim.o.columns * config.width)
+		local height = math.floor(vim.o.lines * config.height)
 		vim.api.nvim_open_win(buf, true, {
 			relative = "editor",
 			width = width,
@@ -45,8 +46,8 @@ function M.open()
 			style = "minimal",
 		})
 	else
-		local cmd = config.chat.position == "above" and "topleft" or "botright"
-		if config.chat.position == "left" or config.chat.position == "right" then
+		local cmd = config.position == "above" and "topleft" or "botright"
+		if config.position == "left" or config.position == "right" then
 			cmd = "vertical " .. cmd
 		end
 		vim.cmd(cmd .. " split")
@@ -58,7 +59,7 @@ function M.open()
 
 	-- Debug: show available tools in a notification
 	local tool_names = vim.tbl_keys(require("agents.tools").available_tools)
-	vim.notify("🛠️  Loaded tools: " .. table.concat(tool_names, ", "), vim.log.levels.INFO)
+	-- vim.notify("🛠️  Loaded tools: " .. table.concat(tool_names, ", "), vim.log.levels.INFO)
 
 	-- Set up buffer-local keymaps and protections
 	M.setup_buffer_keymaps(buf)
@@ -68,27 +69,11 @@ end
 function M.render(buf)
 	local lines = { "# agents.nvim Chat — chatting with Grok (xAI)", "" }
 
+	local render_msg = require("agents.rendering").msg
+
 	-- Add previous messages
 	for _, msg in ipairs(M.history or {}) do
-		if msg.role == "user" then
-			table.insert(lines, "**You:**")
-			for _, line in ipairs(vim.split(msg.content, "\n")) do
-				table.insert(lines, line)
-			end
-		elseif msg.role == "assistant" then
-			table.insert(lines, "**Grok:**")
-			for _, line in ipairs(vim.split(msg.content, "\n")) do
-				table.insert(lines, line)
-			end
-		elseif msg.role == "tool" then
-			table.insert(lines, "**Tool result:**")
-			-- Show what Grok asked for (great for debugging)
-			local result = vim.json.decode(msg.content) or msg.content
-			local pretty = type(result) == "table" and vim.inspect(result) or tostring(result)
-			for _, line in ipairs(vim.split(pretty, "\n")) do
-				table.insert(lines, line)
-			end
-		end
+		render_msg.render(lines, msg)
 	end
 	table.insert(lines, "")
 
@@ -191,7 +176,7 @@ function M.send(buf)
 					args = {}
 				end
 
-				vim.notify("🛠️ Executing: " .. tool_name, vim.log.levels.INFO)
+				-- vim.notify("🛠️ Executing: " .. tool_name, vim.log.levels.INFO)
 
 				local result = require("agents.tools").call(tool_name, args)
 
@@ -200,6 +185,8 @@ function M.send(buf)
 					role = "tool",
 					tool_call_id = call.id,
 					content = vim.json.encode(result),
+					tool_name = tool_name,
+					arguments = args,
 				})
 			end
 

@@ -6,10 +6,6 @@ local M = {}
 local defaults = {
 	api_key = vim.env.XAI_API_KEY,
 	api_url = "https://api.x.ai/v1/chat/completions",
-	chat = {
-		style = "split", -- "float" or "split"
-		position = "right", -- for split: "above", "below", "left", "right"
-	},
 }
 
 M.config = {}
