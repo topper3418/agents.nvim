@@ -1,1 +1,5 @@
+the user commands don't seem to go away when sent. 
 
+the chat "stunlocks" the cursor while working.
+
+It seems to want me to save the chat buffer when closing. 

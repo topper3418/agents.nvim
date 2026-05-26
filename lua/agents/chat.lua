@@ -3,6 +3,22 @@
 
 local M = {}
 
+local function get_system_prompt()
+	local script_path = debug.getinfo(1, "S").source:sub(2)
+	local plugin_root = vim.fn.fnamemodify(script_path, ":h") -- go up from chat.lua → agents → lua → root
+	local prompt_path = plugin_root .. "/prompts/system.txt"
+
+	local file = io.open(prompt_path, "r")
+	if not file then
+		vim.notify("agents.nvim: Could not read system prompt from " .. prompt_path, vim.log.levels.ERROR)
+		return "You are a helpful coding assistant."
+	end
+
+	local content = file:read("*a")
+	file:close()
+	return vim.trim(content)
+end
+
 -- Opens a new chat buffer in the configured style
 function M.open(config)
 	-- local config = require("agents").config
@@ -15,6 +31,7 @@ function M.open(config)
 		vim.api.nvim_buf_set_name(buf, "agents-chat")
 		vim.api.nvim_buf_set_option(buf, "filetype", "markdown")
 		vim.api.nvim_buf_set_option(buf, "buftype", "nofile")
+		vim.api.nvim_buf_set_option(buf, "buftype", "prompt")
 	end
 
 	M.history = M.history or {}
@@ -22,12 +39,7 @@ function M.open(config)
 	if not M.system_prompt_added then
 		table.insert(M.history, 1, {
 			role = "system",
-			content = "You are an agentic coding assistant inside Neovim. "
-				.. "You have access to tools that allow you to use the application's current context to give better answers"
-				.. "IMPORTANT: You can (and should) make MULTIPLE tool calls in sequence. "
-				.. "After receiving a tool result, decide if you need to call another tool before giving a final answer to the user. "
-				.. "Only give a final answer when you have all the information you need. "
-				.. "Never guess file contents. Be concise.",
+			content = get_system_prompt(),
 		})
 		M.system_prompt_added = true
 	end
@@ -69,20 +81,11 @@ end
 function M.render(buf)
 	local lines = { "# agents.nvim Chat — chatting with Grok (xAI)", "" }
 
-	local render_msg = require("agents.rendering").msg
-
 	-- Add previous messages
 	for _, msg in ipairs(M.history or {}) do
-		render_msg.render(lines, msg)
+		require("agents.rendering").msg.render(lines, msg, M.show_tool_results)
 	end
 	table.insert(lines, "")
-
-	-- Chat cursor / input area
-	table.insert(
-		lines,
-		"─────────────────────────────────────"
-	)
-	table.insert(lines, "> ") -- user types here
 
 	vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
 	vim.api.nvim_buf_set_option(buf, "modifiable", true)
@@ -114,7 +117,7 @@ function M.setup_buffer_keymaps(buf)
 			local cursor = vim.api.nvim_win_get_cursor(0)
 			local total_lines = vim.api.nvim_buf_line_count(buf)
 
-			if cursor[1] < total_lines then
+			if cursor[1] < total_lines or (cursor[1] == total_lines and cursor[2] < 2) then
 				-- Jump to input line and stay in insert mode
 				vim.api.nvim_win_set_cursor(0, { total_lines, 2 })
 				-- No need to call startinsert again — we're already entering Insert mode
@@ -139,8 +142,16 @@ function M.send(buf)
 	local input_line = lines[#lines]
 
 	-- Strip the "> " prefix
-	local user_msg = input_line:gsub("^>%s*", "")
+	local user_msg = input_line:gsub("^>%s*", ""):gsub("^%%%s*", "")
 	if user_msg == "" then
+		return
+	end
+
+	-- intercept any kind of user command
+	-- if it starts with /
+	local is_command = user_msg:sub(1, 1) == "/"
+	if is_command then
+		require("agents.commands").handle_command(user_msg, buf, M)
 		return
 	end
 
@@ -158,49 +169,7 @@ function M.send(buf)
 	-- vim.api.nvim_buf_set_lines(buf, -1, -1, false, { "Thinking..." })
 	vim.cmd("redraw")
 
-	-- === AGENT LOOP ===
-	while true do
-		local message = require("agents.llm").chat(M.history)
-
-		if not message then
-			break
-		end
-
-		if message.tool_calls and #message.tool_calls > 0 then
-			-- Grok wants to use one or more tools
-			for _, call in ipairs(message.tool_calls) do
-				local tool_name = call["function"].name
-				local args_str = call["function"].arguments or "{}"
-				local ok, args = pcall(vim.json.decode, args_str)
-				if not ok then
-					args = {}
-				end
-
-				-- vim.notify("🛠️ Executing: " .. tool_name, vim.log.levels.INFO)
-
-				local result = require("agents.tools").call(tool_name, args)
-
-				-- Feed the result back to Grok
-				table.insert(M.history, {
-					role = "tool",
-					tool_call_id = call.id,
-					content = vim.json.encode(result),
-					tool_name = tool_name,
-					arguments = args,
-				})
-			end
-
-			-- Continue the loop (Grok gets to see the tool results and decide next step)
-			vim.api.nvim_buf_set_lines(buf, -1, -1, false, { "Thinking (chaining)..." })
-			vim.cmd("redraw")
-		else
-			-- Grok gave a normal text answer → we're done
-			if message.content then
-				table.insert(M.history, { role = "assistant", content = message.content })
-			end
-			break
-		end
-	end
+	require("agents.agent_loop").loop(M, buf)
 
 	M.render(buf)
 end

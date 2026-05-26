@@ -16,9 +16,23 @@ function M.msg.assistant(buf_lines, msg)
 	end
 end
 
-function M.msg.tool(buf_lines, msg)
+function M.msg.tool(buf_lines, msg, show_tool_results)
+	-- short message if tool results are hidden
+	if not show_tool_results then
+		table.insert(buf_lines, "**Tool Result:** " .. (msg.tool_name or "unknown"))
+		return
+	end
 	table.insert(buf_lines, "**Tool Result:**")
 	local ok, decoded = pcall(vim.json.decode, msg.content)
+	-- show the tool that was called
+	table.insert(buf_lines, "*Tool:* " .. (msg.tool_name or "unknown"))
+	-- show the args given
+	table.insert(buf_lines, "*Args:*")
+	for _, line in ipairs(vim.split(msg.raw_arguments or "{}", "\n")) do
+		table.insert(buf_lines, line)
+	end
+	-- show the results
+	table.insert(buf_lines, "*Results:*")
 	if ok and type(decoded) == "table" then
 		if decoded.content then
 			-- read_file style result
@@ -42,18 +56,17 @@ function M.msg.tool(buf_lines, msg)
 	end
 end
 
-function M.msg.render(buf_lines, msg)
+function M.msg.render(buf_lines, msg, show_tool_results)
 	if msg.role == "user" then
 		M.msg.user(buf_lines, msg)
 	elseif msg.role == "assistant" then
 		M.msg.assistant(buf_lines, msg)
 	elseif msg.role == "tool" then
-		table.insert(buf_lines, "**Tool Result:**")
-		local ok, decoded = pcall(vim.json.decode, msg.content)
-		if ok and type(decoded) == "table" then
-			M.msg.tool(buf_lines, msg)
-		end
+		M.msg.tool(buf_lines, msg, show_tool_results)
 	end
+	-- add a dividing two spaces and a dividng line after each message
+	table.insert(buf_lines, "")
+	table.insert(buf_lines, "-------------------------------------------")
 end
 
 return M
