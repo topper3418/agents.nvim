@@ -24,7 +24,6 @@ function M.chat(messages, callback)
 		tool_choice = "auto",
 	}
 
-
 	curl.post(config.api_url, {
 		headers = {
 			["Content-Type"] = "application/json",
@@ -34,19 +33,20 @@ function M.chat(messages, callback)
 		callback = function(res)
 			-- This runs on a fast event, so we schedule it
 			vim.schedule(function()
-					if res.status ~= 200 then
-							vim.notify("LLM error: " .. (res.body or "unknown"), vim.log.levels.ERROR)
-							return callback(nil)
-					end
+				if res.status ~= 200 then
+					vim.notify("LLM error: " .. (res.body or "unknown"), vim.log.levels.ERROR)
+					return callback(nil)
+				end
 
-					local ok, data = pcall(vim.json.decode, res.body)
-					if not ok or not data.choices or not data.choices[1] then
-							vim.notify("Failed to parse response", vim.log.levels.ERROR)
-							return callback(nil)
-					end
+				local ok, data = pcall(vim.json.decode, res.body)
+				if not ok or not data.choices or not data.choices[1] then
+					vim.notify("Failed to parse response", vim.log.levels.ERROR)
+					return callback(nil)
+				end
 
-					callback(data.choices[1].message)
+				callback(data.choices[1].message)
 			end)
+		end,
 	})
 end
 

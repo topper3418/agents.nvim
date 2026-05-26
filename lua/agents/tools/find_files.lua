@@ -5,19 +5,28 @@ local tools = require("agents.tools")
 local function find_files(args)
 	local query = args.query or "*"
 	if query == "" then
-		query = "*"
+		query = "**/*"
 	end
 
 	local cwd = vim.uv.cwd()
-	local scandir = require("plenary.scandir")
-	local files = scandir.scan_dir(cwd, {
-		search_pattern = query,
-		depth = 12,
-		add_dirs = false,
-		hidden = true,
-	})
+	local files = {}
 
-	return { files = files }
+	-- Use vim.fs.find (more reliable than plenary.scandir for globs)
+	for _, file in
+		ipairs(vim.fs.find(function(name)
+			return vim.fn.match(name, vim.fn.glob2regpat(query)) >= 0
+		end, {
+			path = cwd,
+			limit = 50,
+			type = "file",
+			hidden = true,
+		}))
+	do
+		-- Return paths relative to cwd for readability
+		table.insert(files, vim.fn.fnamemodify(file, ":~:."))
+	end
+
+	return { files = files, count = #files }
 end
 
 tools.register("find_files", find_files, "Recursively search for files in the current project.", {
@@ -25,7 +34,7 @@ tools.register("find_files", find_files, "Recursively search for files in the cu
 	properties = {
 		query = {
 			type = "string",
-			description = "Filename, glob pattern, or search term (e.g. 'llm.lua', '*.lua', 'init')",
+			description = "Glob pattern (e.g. '*.lua', 'init*', '**/*test*')",
 		},
 	},
 	required = {},

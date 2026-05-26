@@ -1,5 +1,7 @@
 the user commands don't seem to go away when sent. 
 
-the chat "stunlocks" the cursor while working.
-
 It seems to want me to save the chat buffer when closing. 
+
+I shouldn't be allowed to modify that buffer at all when the chat is working
+
+It seems like the initial "thinking" thing is gone

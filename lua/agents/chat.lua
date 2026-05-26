@@ -77,6 +77,13 @@ function M.open(config)
 	M.setup_buffer_keymaps(buf)
 end
 
+local function set_cursor_in_buf(buf, line, col)
+	local wins = vim.fn.win_findbuf(buf)
+	if #wins > 0 then
+		vim.api.nvim_win_set_cursor(wins[1], { line, col })
+	end
+end
+
 -- Render history + chat cursor into the buffer
 function M.render(buf)
 	local lines = { "# agents.nvim Chat — chatting with Grok (xAI)", "" }
@@ -92,7 +99,7 @@ function M.render(buf)
 
 	-- Move cursor to the input line
 	local input_line = #lines
-	vim.api.nvim_win_set_cursor(0, { input_line, 2 }) -- right after the "> "
+	set_cursor_in_buf(buf, input_line, 2)
 end
 
 -- Protect the buffer and set up sending
