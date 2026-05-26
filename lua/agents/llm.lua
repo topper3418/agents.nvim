@@ -6,7 +6,7 @@ local curl = require("plenary.curl") -- this is the "openai library" equivalent 
 local M = {}
 
 -- Send a full conversation to xAI and get back the assistant reply (blocking for now)
-function M.chat(messages)
+function M.chat(messages, callback)
 	local config = require("agents").config
 
 	if not config.api_key or config.api_key == "" then
@@ -24,26 +24,30 @@ function M.chat(messages)
 		tool_choice = "auto",
 	}
 
-	local res = curl.post(config.api_url, {
+
+	curl.post(config.api_url, {
 		headers = {
 			["Content-Type"] = "application/json",
 			["Authorization"] = "Bearer " .. config.api_key,
 		},
 		body = vim.json.encode(body),
+		callback = function(res)
+			-- This runs on a fast event, so we schedule it
+			vim.schedule(function()
+					if res.status ~= 200 then
+							vim.notify("LLM error: " .. (res.body or "unknown"), vim.log.levels.ERROR)
+							return callback(nil)
+					end
+
+					local ok, data = pcall(vim.json.decode, res.body)
+					if not ok or not data.choices or not data.choices[1] then
+							vim.notify("Failed to parse response", vim.log.levels.ERROR)
+							return callback(nil)
+					end
+
+					callback(data.choices[1].message)
+			end)
 	})
-
-	if res.status ~= 200 then
-		vim.notify("LLM error: " .. (res.body or "unknown"), vim.log.levels.ERROR)
-		return nil
-	end
-
-	local ok, data = pcall(vim.json.decode, res.body)
-	if not ok or not data.choices or not data.choices[1] then
-		vim.notify("Failed to parse response", vim.log.levels.ERROR)
-		return nil
-	end
-
-	return data.choices[1].message
 end
 
 return M
