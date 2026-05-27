@@ -3,7 +3,7 @@
 
 local M = {}
 
-function load_from_file()
+local function load_from_file()
 	-- Get current working directory (where Neovim was opened)
 	local cwd = vim.fn.getcwd()
 	local file_path = cwd .. "/.nvim/agents/history.json"
@@ -31,18 +31,23 @@ function load_from_file()
 	return history
 end
 
-M.history = load_from_file()
+local function get_system_prompt()
+	local script_path = debug.getinfo(1, "S").source:sub(2)
+	local plugin_root = vim.fn.fnamemodify(script_path, ":h") -- go up from chat.lua → agents → lua → root
+	local prompt_path = plugin_root .. "/prompts/system.txt"
 
-function M.add_system_prompt()
-	if not M.system_prompt_added then
-		table.insert(M.history, 1, {
-			role = "system",
-			content = get_system_prompt(),
-		})
-		M.system_prompt_added = true
-		save_history() -- Save history after adding the system prompt
+	local file = io.open(prompt_path, "r")
+	if not file then
+		vim.notify("agents.nvim: Could not read system prompt from " .. prompt_path, vim.log.levels.ERROR)
+		return "You are a helpful coding assistant."
 	end
+
+	local content = file:read("*a")
+	file:close()
+	return vim.trim(content)
 end
+
+M.history = load_from_file()
 
 local function save_history()
 	-- Get current working directory (where Neovim was opened)
@@ -75,8 +80,21 @@ local function save_history()
 	return true
 end
 
+function M.add_system_prompt()
+	if not M.system_prompt_added then
+		table.insert(M.history, 1, {
+			role = "system",
+			content = get_system_prompt(),
+		})
+		M.system_prompt_added = true
+		save_history() -- Save history after adding the system prompt
+	end
+end
+
 function M.add_message(message)
-	add_system_prompt() -- Ensure system prompt is added before any messages
+	M.add_system_prompt() -- Ensure system prompt is added before any messages
 	table.insert(M.history, message)
 	save_history() -- Save history after adding a new message
 end
+
+return M

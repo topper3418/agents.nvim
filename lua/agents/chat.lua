@@ -3,22 +3,6 @@
 
 local M = {}
 
-local function get_system_prompt()
-	local script_path = debug.getinfo(1, "S").source:sub(2)
-	local plugin_root = vim.fn.fnamemodify(script_path, ":h") -- go up from chat.lua → agents → lua → root
-	local prompt_path = plugin_root .. "/prompts/system.txt"
-
-	local file = io.open(prompt_path, "r")
-	if not file then
-		vim.notify("agents.nvim: Could not read system prompt from " .. prompt_path, vim.log.levels.ERROR)
-		return "You are a helpful coding assistant."
-	end
-
-	local content = file:read("*a")
-	file:close()
-	return vim.trim(content)
-end
-
 -- Opens a new chat buffer in the configured style
 function M.open(config)
 	-- local config = require("agents").config
@@ -36,16 +20,6 @@ function M.open(config)
 		vim.api.nvim_buf_set_option(buf, "swapfile", false)
 		vim.api.nvim_buf_set_option(buf, "modified", false)
 		vim.api.nvim_buf_set_option(buf, "modifiable", false)
-	end
-
-	M.history = M.history or {}
-
-	if not M.system_prompt_added then
-		table.insert(M.history, 1, {
-			role = "system",
-			content = get_system_prompt(),
-		})
-		M.system_prompt_added = true
 	end
 
 	-- Open the window
@@ -95,7 +69,7 @@ function M.render(buf)
 	local lines = { "# agents.nvim Chat — chatting with Grok (xAI)", "" }
 
 	-- Add previous messages
-	for _, msg in ipairs(M.history or {}) do
+	for _, msg in ipairs(require("agents.history").history) do
 		require("agents.rendering").msg.render(lines, msg, M.show_tool_results)
 	end
 	table.insert(lines, "")
@@ -167,18 +141,20 @@ function M.send(buf)
 		return
 	end
 
-	-- Initialize history if first time
-	M.history = M.history or {}
-
 	-- Add user message to history
-	table.insert(M.history, { role = "user", content = user_msg })
+	require("agents.history").add_message({
+		role = "user",
+		content = user_msg,
+	})
 
 	-- Show "thinking..." while we wait
 	vim.api.nvim_buf_set_lines(buf, -1, -1, false, { "🤔 Thinking..." })
 	vim.cmd.redraw()
 
 	vim.schedule(function()
-		require("agents.agent_loop").loop(M, buf)
+		require("agents.agent_loop").loop(buf, function()
+			M.render(buf) -- re-render to show the new assistant message
+		end)
 	end)
 end
 

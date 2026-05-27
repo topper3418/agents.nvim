@@ -1,7 +1,7 @@
 local M = {}
 
-local function step(chat_object, buf, done)
-	require("agents.llm").chat(chat_object.history, function(message)
+local function step(buf, done)
+	require("agents.llm").chat(require("agents.history").history, function(message)
 		if not message then
 			done()
 			return
@@ -9,7 +9,7 @@ local function step(chat_object, buf, done)
 
 		if message.tool_calls and #message.tool_calls > 0 then
 			-- 1. Store the assistant message that requested the tool calls
-			table.insert(chat_object.history, {
+			require("agents.history").add_message({
 				role = "assistant",
 				content = message.content or "",
 				tool_calls = message.tool_calls,
@@ -24,7 +24,7 @@ local function step(chat_object, buf, done)
 				vim.cmd.redraw()
 				local result = require("agents.tools").call(tool_name, args)
 
-				table.insert(chat_object.history, {
+				require("agents.history").add_message({
 					role = "tool",
 					tool_call_id = call.id,
 					content = vim.json.encode(result),
@@ -33,10 +33,10 @@ local function step(chat_object, buf, done)
 			end
 
 			vim.api.nvim_buf_set_lines(buf, -1, -1, false, { "Thinking (chaining)..." })
-			step(chat_object, buf, done) -- continue the loop
+			step(buf, done) -- continue the loop
 		else
 			if message.content then
-				table.insert(chat_object.history, {
+				require("agents.history").add_message({
 					role = "assistant",
 					content = message.content,
 				})
@@ -46,9 +46,9 @@ local function step(chat_object, buf, done)
 	end)
 end
 
-function M.loop(chat_object, buf)
-	step(chat_object, buf, function()
-		chat_object.render(buf) -- call render when fully done
+function M.loop(buf, done)
+	step(buf, function()
+		done()
 	end)
 end
 
