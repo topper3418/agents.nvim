@@ -31,7 +31,11 @@ function M.open(config)
 		vim.api.nvim_buf_set_name(buf, "agents-chat")
 		vim.api.nvim_buf_set_option(buf, "filetype", "markdown")
 		vim.api.nvim_buf_set_option(buf, "buftype", "nofile")
-		vim.api.nvim_buf_set_option(buf, "buftype", "prompt")
+		vim.api.nvim_buf_set_option(buf, "buflisted", false)
+		vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
+		vim.api.nvim_buf_set_option(buf, "swapfile", false)
+		vim.api.nvim_buf_set_option(buf, "modified", false)
+		vim.api.nvim_buf_set_option(buf, "modifiable", false)
 	end
 
 	M.history = M.history or {}
@@ -86,6 +90,8 @@ end
 
 -- Render history + chat cursor into the buffer
 function M.render(buf)
+	-- unlock buffer for rendering
+	vim.api.nvim_buf_set_option(buf, "modifiable", true)
 	local lines = { "# agents.nvim Chat — chatting with Grok (xAI)", "" }
 
 	-- Add previous messages
@@ -95,7 +101,8 @@ function M.render(buf)
 	table.insert(lines, "")
 
 	vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-	vim.api.nvim_buf_set_option(buf, "modifiable", true)
+	vim.api.nvim_buf_set_option(buf, "modified", false)
+	vim.api.nvim_buf_set_option(buf, "modifiable", false)
 
 	-- Move cursor to the input line
 	local input_line = #lines
@@ -117,18 +124,16 @@ function M.setup_buffer_keymaps(buf)
 		end)
 	end, { buffer = buf, silent = true, desc = "Send message to Grok" })
 
-	-- Protection: only enforce when trying to INSERT above the input line
-	vim.api.nvim_create_autocmd("InsertEnter", {
+	-- Smart modifiable toggle: only allow editing on the input line
+	vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
 		buffer = buf,
 		callback = function()
 			local cursor = vim.api.nvim_win_get_cursor(0)
 			local total_lines = vim.api.nvim_buf_line_count(buf)
 
-			if cursor[1] < total_lines or (cursor[1] == total_lines and cursor[2] < 2) then
-				-- Jump to input line and stay in insert mode
-				vim.api.nvim_win_set_cursor(0, { total_lines, 2 })
-				-- No need to call startinsert again — we're already entering Insert mode
-			end
+			local on_input_line = (cursor[1] == total_lines)
+
+			vim.api.nvim_buf_set_option(buf, "modifiable", on_input_line)
 		end,
 	})
 
@@ -169,16 +174,12 @@ function M.send(buf)
 	table.insert(M.history, { role = "user", content = user_msg })
 
 	-- Show "thinking..." while we wait
-	vim.api.nvim_buf_set_lines(buf, -1, -1, false, { "Thinking..." })
-	vim.cmd("redraw")
+	vim.api.nvim_buf_set_lines(buf, -1, -1, false, { "🤔 Thinking..." })
+	vim.cmd.redraw()
 
-	-- Show that we're calling the LLM
-	-- vim.api.nvim_buf_set_lines(buf, -1, -1, false, { "Thinking..." })
-	vim.cmd("redraw")
-
-	require("agents.agent_loop").loop(M, buf)
-
-	M.render(buf)
+	vim.schedule(function()
+		require("agents.agent_loop").loop(M, buf)
+	end)
 end
 
 return M

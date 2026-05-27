@@ -20,6 +20,8 @@ local function step(chat_object, buf, done)
 				local tool_name = call["function"].name
 				local args = vim.json.decode(call["function"].arguments or "{}") or {}
 
+				vim.api.nvim_buf_set_lines(buf, -1, -1, false, { "🛠️ Running: " .. tool_name })
+				vim.cmd.redraw()
 				local result = require("agents.tools").call(tool_name, args)
 
 				table.insert(chat_object.history, {
