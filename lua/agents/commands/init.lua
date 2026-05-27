@@ -6,7 +6,7 @@ function M.handle_command(user_msg, buf, chat_object)
 	local cmd = parts[1]
 	local arg = parts[2]
 	if cmd == "clear" then
-		chat_object.history = nil
+		require("agents.history").clear_history()
 		vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
 			"# agents.nvim Chat — chatting with Grok (xAI)",
 			"",
@@ -24,6 +24,8 @@ function M.handle_command(user_msg, buf, chat_object)
 		vim.api.nvim_buf_set_lines(buf, 0, -1, false, help_text)
 		vim.cmd("redraw")
 		return
+	-- TODO:
+	-- make the chat object an "opts" object instead
 	elseif cmd == "tool-results" then
 		if arg == "show" then
 			chat_object.show_tool_results = true
@@ -35,7 +37,7 @@ function M.handle_command(user_msg, buf, chat_object)
 			vim.notify("Unknown tool-results option: " .. arg, vim.log.levels.WARN)
 			return
 		end
-		vim.cmd("redraw")
+		vim.cmd.redraw()
 		vim.notify("tool-results: " .. (chat_object.show_tool_results and "shown" or "hidden"))
 
 		return

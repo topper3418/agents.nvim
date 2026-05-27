@@ -1,5 +1,3 @@
 the user commands don't seem to go away when sent. 
 
-I need to ensure that the historian is propagated through the entire project. 
-
 I need to start adding tools

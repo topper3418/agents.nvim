@@ -97,4 +97,9 @@ function M.add_message(message)
 	save_history() -- Save history after adding a new message
 end
 
+function M.clear_history(message)
+	M.history = {}
+	save_history() -- Save history after clearing
+end
+
 return M
