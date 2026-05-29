@@ -7,16 +7,16 @@ local Window = {}
 function Window.acquire_buffer()
 	-- Reuse existing chat buffer if it already exists
 	Window.buf = vim.fn.bufnr("agents-chat")
-	if buf == -1 then
-		buf = vim.api.nvim_create_buf(false, true)
-		vim.api.nvim_buf_set_name(buf, "agents-chat")
-		vim.api.nvim_buf_set_option(buf, "filetype", "markdown")
-		vim.api.nvim_buf_set_option(buf, "buftype", "nofile")
-		vim.api.nvim_buf_set_option(buf, "buflisted", false)
-		vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
-		vim.api.nvim_buf_set_option(buf, "swapfile", false)
-		vim.api.nvim_buf_set_option(buf, "modified", false)
-		vim.api.nvim_buf_set_option(buf, "modifiable", false)
+	if Window.buf == -1 then
+		Window.buf = vim.api.nvim_create_buf(false, true)
+		vim.api.nvim_buf_set_name(Window.buf, "agents-chat")
+		vim.api.nvim_buf_set_option(Window.buf, "filetype", "markdown")
+		vim.api.nvim_buf_set_option(Window.buf, "buftype", "nofile")
+		vim.api.nvim_buf_set_option(Window.buf, "buflisted", false)
+		vim.api.nvim_buf_set_option(Window.buf, "bufhidden", "wipe")
+		vim.api.nvim_buf_set_option(Window.buf, "swapfile", false)
+		vim.api.nvim_buf_set_option(Window.buf, "modified", false)
+		vim.api.nvim_buf_set_option(Window.buf, "modifiable", false)
 	end
 	return Window.buf
 end
@@ -29,7 +29,7 @@ function Window.open(config)
 	if config.style == "float" then
 		local width = math.floor(vim.o.columns * config.width)
 		local height = math.floor(vim.o.lines * config.height)
-		vim.api.nvim_open_win(buf, true, {
+		vim.api.nvim_open_win(Window.buf, true, {
 			relative = "editor",
 			width = width,
 			height = height,

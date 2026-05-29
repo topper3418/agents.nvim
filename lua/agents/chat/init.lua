@@ -48,41 +48,7 @@ end
 
 -- Protect the buffer and set up sending
 function M.setup_buffer_keymaps()
-	-- Send on <CR> in NORMAL mode
-	vim.keymap.set("n", "<CR>", function()
-		M.send(M.buf)
-	end, { buffer = M.buf, silent = true, desc = "Send message to Grok" })
-
-	-- Send on <CR> in INSERT mode
-	vim.keymap.set("i", "<CR>", function()
-		vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
-		vim.schedule(function()
-			M.send(M.buf)
-		end)
-	end, { buffer = M.buf, silent = true, desc = "Send message to Grok" })
-
-	-- Smart modifiable toggle: only allow editing on the input line
-	vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
-		buffer = M.buf,
-		callback = function()
-			local cursor = vim.api.nvim_win_get_cursor(0)
-			local total_lines = vim.api.nvim_buf_line_count(M.buf)
-
-			local on_input_line = (cursor[1] == total_lines)
-
-			vim.api.nvim_buf_set_option(M.buf, "modifiable", on_input_line)
-		end,
-	})
-
-	-- Quick normal-mode shortcut to jump to input and start typing
-	vim.keymap.set("n", "r", function()
-		local total_lines = vim.api.nvim_buf_line_count(M.buf)
-		vim.api.nvim_win_set_cursor(0, { total_lines, 2 })
-		vim.cmd("startinsert")
-	end, { buffer = M.buf, silent = true, desc = "Reply / jump to input" })
-
-	-- Auto-enter insert mode the first time the window opens
-	vim.cmd("startinsert")
+	require("agents.chat.keymaps").set(M.buf, M.send)
 end
 
 -- Send the current input and get a reply
