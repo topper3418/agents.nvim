@@ -13,10 +13,6 @@ function M.send(buf)
 		return
 	end
 
-	-- TODO: this is where I left off, continue refactoring this pasted code,
-	-- maybe move the handle command into this dir
-	-- intercept any kind of user command
-	-- if it starts with /
 	local is_command = user_msg:sub(1, 1) == "/"
 	if is_command then
 		require("agents.commands").handle_command(user_msg, buf, M)
