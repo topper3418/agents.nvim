@@ -3,7 +3,7 @@
 
 local M = {}
 
-function M.send(buf)
+function M.send(buf, callback)
 	local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
 	local input_line = lines[#lines]
 
@@ -26,14 +26,10 @@ function M.send(buf)
 	})
 
 	-- Show "thinking..." while we wait
-	vim.api.nvim_buf_set_lines(M.buf, -1, -1, false, { "🤔 Thinking..." })
+	vim.api.nvim_buf_set_lines(buf, -1, -1, false, { "🤔 Thinking..." })
 	vim.cmd.redraw()
 
-	vim.schedule(function()
-		require("agents.agent_loop").loop(M.buf, function()
-			M.render(M.buf) -- re-render to show the new assistant message
-		end)
-	end)
+	callback()
 end
 
 return M

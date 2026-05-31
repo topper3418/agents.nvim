@@ -37,7 +37,13 @@ end
 
 -- Send the current input and get a reply
 function M.send()
-	require("agents.chat.send").send(M.buf)
+	require("agents.chat.send").send(M.buf, function()
+		vim.schedule(function()
+			require("agents.agent_loop").loop(M.buf, function()
+				M.render() -- re-render to show the new assistant message
+			end)
+		end)
+	end)
 end
 
 return M

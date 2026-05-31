@@ -16,12 +16,14 @@ function M.render(buf, callback)
 	end
 	table.insert(lines, "")
 
+	-- give input line
+	table.insert(lines, "> ")
+	-- render
 	vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
 	vim.api.nvim_buf_set_option(buf, "modified", false)
 	vim.api.nvim_buf_set_option(buf, "modifiable", false)
 
-	-- give input line and move cursor to it
-	table.insert(lines, "> ")
+	-- move cursor to the input line
 	local input_line = #lines
 	callback(input_line, 2)
 end
