@@ -46,9 +46,13 @@ function M.get_tool_list()
 	return list
 end
 
-vim.schedule(function()
-	require("agents.tools.read_file")
-	require("agents.tools.find_files")
-end)
+-- register all default tools
+local tools = {
+	require("agents.tools.read_file"),
+	require("agents.tools.find_files"),
+}
+for _, tool in ipairs(tools) do
+	M.register(tool[1], tool[2], tool[3], tool[4])
+end
 
 return M

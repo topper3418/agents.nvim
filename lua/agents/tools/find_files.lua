@@ -1,7 +1,5 @@
 -- lua/agents/tools/find_files.lua
 
-local tools = require("agents.tools")
-
 local function find_files(args)
 	local query = args.query or "*"
 	if query == "" then
@@ -29,15 +27,18 @@ local function find_files(args)
 	return { files = files, count = #files }
 end
 
-tools.register("find_files", find_files, "Recursively search for files in the current project.", {
-	type = "object",
-	properties = {
-		query = {
-			type = "string",
-			description = "Glob pattern (e.g. '*.lua', 'init*', '**/*test*')",
+return {
+	"find_files",
+	find_files,
+	"Recursively search for files in the current project.",
+	{
+		type = "object",
+		properties = {
+			query = {
+				type = "string",
+				description = "Glob pattern (e.g. '*.lua', 'init*', '**/*test*')",
+			},
 		},
+		required = {},
 	},
-	required = {},
-})
-
-return {}
+}
