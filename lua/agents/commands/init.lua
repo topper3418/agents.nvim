@@ -1,46 +1,40 @@
 local M = {}
 
+M.commands = {}
+
+function M.register_command(cmd, fn, desc)
+	M.commands[cmd] = {
+		fn = fn,
+		desc = desc,
+	}
+end
+
+local default_commands = {
+	require("agents.commands.clear_history"),
+	require("agents.commands.tool_results"),
+}
+
+for _, cmd in ipairs(default_commands) do
+	M.register_command(cmd.command, cmd.fn, cmd.desc)
+end
+
 function M.handle_command(user_msg, buf, chat_object)
 	local command = user_msg:sub(2):lower()
-	local parts = vim.split(command, "%s+") -- split on whitespace
-	local cmd = parts[1]
-	local arg = parts[2]
-	if cmd == "clear" then
-		require("agents.history").clear_history()
-		vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
-			"# agents.nvim Chat — chatting with Grok (xAI)",
-			"",
-		})
-		vim.cmd("redraw")
-		return
-	elseif cmd == "help" then
+	local cmd = vim.split(command, "%s+")[1] -- isolate the command part
+	if cmd == "help" then
 		local help_text = {
 			"# agents.nvim Commands",
 			"",
-			"- `/clear`: Clear the chat history",
-			"- `/tool-results [show|hide|toggle]`: Show or hide tool results in the chat history (default: toggle)",
 			"- `/help`: Show this help message",
 		}
+		for cmd_name, cmd_info in pairs(M.commands) do
+			table.insert(help_text, string.format("- `/%s`: %s", cmd_name, cmd_info.desc or "No description"))
+		end
 		vim.api.nvim_buf_set_lines(buf, 0, -1, false, help_text)
 		vim.cmd("redraw")
 		return
-	-- TODO:
-	-- make the chat object an "opts" object instead
-	elseif cmd == "tool-results" then
-		if arg == "show" then
-			chat_object.show_tool_results = true
-		elseif arg == "hide" then
-			chat_object.show_tool_results = false
-		elseif arg == "toggle" or arg == nil then
-			chat_object.show_tool_results = not (chat_object.show_tool_results or false)
-		else
-			vim.notify("Unknown tool-results option: " .. arg, vim.log.levels.WARN)
-			return
-		end
-		vim.cmd.redraw()
-		vim.notify("tool-results: " .. (chat_object.show_tool_results and "shown" or "hidden"))
-
-		return
+	elif M.commands[cmd] then
+		M.commands[cmd](user_msg, buf, chat_object)
 	else
 		vim.notify("Unknown command: " .. cmd, vim.log.levels.WARN)
 		return

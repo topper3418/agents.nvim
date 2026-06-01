@@ -13,4 +13,5 @@ end
 return {
 	command = "clear",
 	fn = clear,
+	desc = "Clear the chat history and reset the buffer. Usage: `/clear`",
 }

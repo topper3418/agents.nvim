@@ -23,4 +23,5 @@ end
 return {
 	command = "tool-results",
 	fn = tool_results,
+	desc = "Show or hide tool results in the chat history. Usage: `/tool-results [show|hide|toggle]`",
 }
