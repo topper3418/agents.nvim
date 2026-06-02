@@ -3,10 +3,7 @@
 
 local function clear(_user_msg, _buf, _chat_object)
 	require("agents.history").clear_history()
-	return {
-		"# agents.nvim Chat — chatting with Grok (xAI)",
-		"",
-	}
+	return {}
 end
 
 return {

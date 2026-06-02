@@ -9,6 +9,11 @@ local defaults = {
 }
 
 M.config = {}
+M.chat = require("agents.chat")
+M.history = require("agents.history")
+M.agent_loop = require("agents.agent_loop")
+M.tools = require("agents.tools")
+M.commands = require("agents.commands")
 
 function M.setup(opts)
 	-- Prefer environment variable
@@ -19,17 +24,17 @@ function M.setup(opts)
 		api_key = api_key,
 	})
 
+	-- Register chat command
+	vim.api.nvim_create_user_command("AgentsChat", function()
+		require("agents.chat").open()
+	end, { desc = "Open a new agents.nvim chat window" })
+
 	vim.notify("🚀 agents.nvim loaded successfully!", vim.log.levels.DEBUG)
 
 	-- Quick validation so the user knows if they forgot the key
 	if M.config.api_key == "" then
 		vim.notify("⚠️  agents.nvim: api_key is not set in your Lazy config!", vim.log.levels.WARN)
 	end
-
-	-- Register chat command
-	vim.api.nvim_create_user_command("AgentsChat", function()
-		require("agents.chat").open()
-	end, { desc = "Open a new agents.nvim chat window" })
 
 	require("agents.chat").history = {}
 end

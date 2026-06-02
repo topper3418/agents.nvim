@@ -13,6 +13,13 @@ function M.register(name, fn, description, parameters)
 		properties = vim.empty_dict(),
 		required = vim.empty_dict(),
 	}
+	-- Ensure properties and required are proper dicts (not arrays)
+	if parameters.properties == nil or vim.tbl_isempty(parameters.properties) then
+		parameters.properties = vim.empty_dict()
+	end
+	-- if parameters.required == nil or vim.tbl_isempty(parameters.required) then
+	-- 	parameters.required = vim.empty_dict()
+	-- end
 
 	M.available_tools[name] = {
 		fn = fn,

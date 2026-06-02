@@ -21,9 +21,10 @@ Add this to your Lazy.nvim spec:
     require("agents").setup({
       api_url = "https://api.x.ai/v1/chat/completions",
     })
+    local agents = require("agents")
     -- Global keymap: <leader>ct opens the chat window
     vim.keymap.set("n", "<leader>ctb", function()  -- "ct" = "chat"
-      require("agents.chat").open({
+      agents.chat.open({
         style = "split",        -- "float" or "split"
         position = "below",     -- for split: "above", "below", "left", "right"
         height = 0.8,           -- percentage of screen (float only)
@@ -31,7 +32,7 @@ Add this to your Lazy.nvim spec:
       })
     end, { desc = "Open agents.nvim chat window", silent = true })
     vim.keymap.set("n", "<leader>ctr", function()  -- "ct" = "chat"
-      require("agents.chat").open({
+      agents.chat.open({
         style = "split",        -- "float" or "split"
         position = "right",     -- for split: "above", "below", "left", "right"
         height = 0.8,           -- percentage of screen (float only)
@@ -39,7 +40,7 @@ Add this to your Lazy.nvim spec:
       })
     end, { desc = "Open agents.nvim chat window", silent = true })
     vim.keymap.set("n", "<leader>ctf", function()  -- "ct" = "chat"
-      require("agents.chat").open({
+      agents.chat.open({
         style = "split",        -- "float" or "split"
         position = "right",     -- for split: "above", "below", "left", "right"
         height = 0.8,           -- percentage of screen (float only)

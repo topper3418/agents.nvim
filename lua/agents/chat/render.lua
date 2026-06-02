@@ -4,7 +4,7 @@
 local M = {}
 
 -- @param buf buffer to render into
--- @callback callback to set cursor after rendering (input_line, col)
+-- @callback callback to set cursor after rendering (no args)
 -- @opts additional options for rendering, e.g. command_output to render command output after a tool call
 function M.render(buf, callback, opts)
 	-- unlock buffer for rendering
@@ -20,7 +20,7 @@ function M.render(buf, callback, opts)
 
 	-- if this is being called after a command output,
 	-- add the command output to the buffer
-	if opts and opts.command_output then
+	if opts and opts.command_output and #opts.command_output > 0 then
 		renderer.command.render_command_output(lines, opts.command_output)
 	end
 	table.insert(lines, "")
@@ -34,7 +34,9 @@ function M.render(buf, callback, opts)
 
 	-- move cursor to the input line
 	local input_line = #lines
-	callback(input_line, 2)
+
+	require("agents.properties").input_line = input_line
+	callback()
 end
 
 return M

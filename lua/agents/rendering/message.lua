@@ -19,7 +19,7 @@ end
 
 function M.tool(buf_lines, msg)
 	-- short message if tool results are hidden
-	if not require("agents.chat.properties").show_tool_results then
+	if not require("lua.agents.properties").show_tool_results then
 		table.insert(buf_lines, "**Tool Result:** " .. (msg.tool_name or "unknown"))
 		return
 	end

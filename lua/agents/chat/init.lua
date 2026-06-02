@@ -18,16 +18,16 @@ function M.open(config)
 	M.setup_buffer_keymaps(M.buf)
 end
 
-local function set_cursor_in_buf(line, col)
+local function reset_cursor()
 	local wins = vim.fn.win_findbuf(M.buf)
 	if #wins > 0 then
-		vim.api.nvim_win_set_cursor(wins[1], { line, col })
+		vim.api.nvim_win_set_cursor(wins[1], { require("agents.properties").input_line, 2 })
 	end
 end
 
 -- Render history + chat cursor into the buffer
 function M.render(opts)
-	require("agents.chat.render").render(M.buf, set_cursor_in_buf, opts)
+	require("agents.chat.render").render(M.buf, reset_cursor, opts)
 end
 
 -- Protect the buffer and set up sending
