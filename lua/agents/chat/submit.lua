@@ -32,7 +32,7 @@ function M.submit(buf, callback)
 	end
 
 	-- normal message Add user message to history
-	require("agents.history").add_message({
+	require("lua.agents.history.init").add_message({
 		role = "user",
 		content = user_msg,
 	})
@@ -41,6 +41,7 @@ function M.submit(buf, callback)
 	vim.api.nvim_buf_set_lines(buf, -1, -1, false, { "🤔 Thinking..." })
 	vim.cmd.redraw()
 
+	vim.b[buf].is_sending = false
 	callback()
 end
 

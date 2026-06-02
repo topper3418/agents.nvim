@@ -1,7 +1,7 @@
 local M = {}
 
 local function step(buf, done)
-	require("agents.llm").chat(require("agents.history").history, function(message)
+	require("agents.llm").chat(require("lua.agents.history.init").history, function(message)
 		if not message then
 			done()
 			return
@@ -9,7 +9,7 @@ local function step(buf, done)
 
 		if message.tool_calls and #message.tool_calls > 0 then
 			-- 1. Store the assistant message that requested the tool calls
-			require("agents.history").add_message({
+			require("lua.agents.history.init").add_message({
 				role = "assistant",
 				content = message.content or "",
 				tool_calls = message.tool_calls,
@@ -24,7 +24,7 @@ local function step(buf, done)
 				vim.cmd.redraw()
 				local result = require("agents.tools").call(tool_name, args)
 
-				require("agents.history").add_message({
+				require("lua.agents.history.init").add_message({
 					role = "tool",
 					tool_call_id = call.id,
 					content = vim.json.encode(result),
@@ -36,7 +36,7 @@ local function step(buf, done)
 			step(buf, done) -- continue the loop
 		else
 			if message.content then
-				require("agents.history").add_message({
+				require("lua.agents.history.init").add_message({
 					role = "assistant",
 					content = message.content,
 				})

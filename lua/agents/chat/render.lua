@@ -14,7 +14,7 @@ function M.render(buf, callback, opts)
 	local renderer = require("agents.rendering")
 
 	-- Add previous messages
-	for _, msg in ipairs(require("agents.history").history) do
+	for _, msg in ipairs(require("lua.agents.history.init").history) do
 		renderer.msg.render(lines, msg)
 	end
 

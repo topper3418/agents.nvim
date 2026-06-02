@@ -33,7 +33,7 @@ end
 
 local function get_system_prompt()
 	local script_path = debug.getinfo(1, "S").source:sub(2)
-	local plugin_root = vim.fn.fnamemodify(script_path, ":h") -- go up from chat.lua → agents → lua → root
+	local plugin_root = vim.fn.fnamemodify(script_path, ":h:h") -- go up from chat.lua → agents → lua → root
 	local prompt_path = plugin_root .. "/prompts/system.txt"
 
 	local file = io.open(prompt_path, "r")

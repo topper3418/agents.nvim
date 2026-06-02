@@ -10,7 +10,7 @@ local defaults = {
 
 M.config = {}
 M.chat = require("agents.chat")
-M.history = require("agents.history")
+M.history = require("lua.agents.history.init")
 M.agent_loop = require("agents.agent_loop")
 M.tools = require("agents.tools")
 M.commands = require("agents.commands")

@@ -2,7 +2,7 @@
 -- clears the history, and resets the buffer
 
 local function clear(_user_msg, _buf, _chat_object)
-	require("agents.history").clear_history()
+	require("lua.agents.history.init").clear_history()
 	return {}
 end
 

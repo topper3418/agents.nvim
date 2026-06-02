@@ -4,10 +4,13 @@
 local M = {}
 
 function M.set(buf, send_callback)
+	-- Guard against multiple calls to set() for the same buffer, which can happen if the user opens/closes the window multiple times.
 	if vim.b[buf].agents_keymaps_set then
 		return
 	end
 	vim.b[buf].agents_keymaps_set = true
+
+	-- helper to send the buffer content to the callback on the main loop
 	local function submit_buffer()
 		vim.schedule(function()
 			send_callback(buf)
@@ -21,8 +24,7 @@ function M.set(buf, send_callback)
 		desc = "Send message to Grok",
 	})
 
-	-- Submit on :w / :write (instead of any Enter mapping)
-	vim.bo[buf].buftype = "nowrite"
+	-- Submit on write
 	vim.api.nvim_create_autocmd("BufWriteCmd", {
 		buffer = buf,
 		callback = function()
@@ -30,6 +32,16 @@ function M.set(buf, send_callback)
 			submit_buffer()
 		end,
 	})
+
+	-- Submit on :w / :write (instead of any Enter mapping)
+	-- vim.bo[buf].buftype = "nowrite"
+	-- vim.api.nvim_create_autocmd("BufWriteCmd", {
+	-- 	buffer = buf,
+	-- 	callback = function()
+	-- 		vim.bo[buf].modified = false
+	-- 		submit_buffer()
+	-- 	end,
+	-- })
 
 	-- Smart modifiable toggle: only allow editing on the input line
 	vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
