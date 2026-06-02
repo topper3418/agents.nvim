@@ -12,7 +12,7 @@ function M.open(config)
 	M.window.open(config)
 
 	-- Render current history + chat cursor
-	M.render(M.buf)
+	M.render()
 
 	-- Set up buffer-local keymaps and protections
 	M.setup_buffer_keymaps(M.buf)
@@ -26,8 +26,8 @@ local function set_cursor_in_buf(line, col)
 end
 
 -- Render history + chat cursor into the buffer
-function M.render()
-	require("agents.chat.render").render(M.buf, set_cursor_in_buf)
+function M.render(opts)
+	require("agents.chat.render").render(M.buf, set_cursor_in_buf, opts)
 end
 
 -- Protect the buffer and set up sending

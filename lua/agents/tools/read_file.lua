@@ -15,10 +15,10 @@ local function read_file(args)
 end
 
 return {
-	"read_file",
-	read_file,
-	"Read the full content of a file on disk given its path.",
-	{
+	name = "read_file",
+	fn = read_file,
+	desc = "Read the full content of a file on disk given its path.",
+	parameters = {
 		type = "object",
 		properties = {
 			path = { type = "string", description = "Full path to the file" },

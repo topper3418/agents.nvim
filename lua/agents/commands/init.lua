@@ -30,14 +30,11 @@ function M.handle_command(user_msg, buf, chat_object)
 		for cmd_name, cmd_info in pairs(M.commands) do
 			table.insert(help_text, string.format("- `/%s`: %s", cmd_name, cmd_info.desc or "No description"))
 		end
-		vim.api.nvim_buf_set_lines(buf, 0, -1, false, help_text)
-		vim.cmd("redraw")
-		return
-	elif M.commands[cmd] then
-		M.commands[cmd](user_msg, buf, chat_object)
+		return help_text
+	elseif M.commands[cmd] then
+		return M.commands[cmd].fn(user_msg, buf, chat_object)
 	else
-		vim.notify("Unknown command: " .. cmd, vim.log.levels.WARN)
-		return
+		return { "Unknown command: " .. cmd, vim.log.levels.WARN }
 	end
 end
 

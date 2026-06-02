@@ -15,7 +15,10 @@ function M.send(buf, callback)
 
 	local is_command = user_msg:sub(1, 1) == "/"
 	if is_command then
-		require("agents.commands").handle_command(user_msg, buf, M)
+		local command_results = require("agents.commands").handle_command(user_msg, buf, M)
+		require("agents.chat").render({
+			command_output = command_results,
+		})
 		return
 	end
 

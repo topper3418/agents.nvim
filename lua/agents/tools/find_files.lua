@@ -1,37 +1,48 @@
 -- lua/agents/tools/find_files.lua
 
 local function find_files(args)
-	local query = args.query or "*"
+	local query = args.query or "**/*"
 	if query == "" then
 		query = "**/*"
 	end
 
-	local cwd = vim.uv.cwd()
+	local cwd = vim.uv.cwd() or "."
+
 	local files = {}
 
-	-- Use vim.fs.find (more reliable than plenary.scandir for globs)
+	-- Use vim.fs.find with a better matcher
 	for _, file in
-		ipairs(vim.fs.find(function(name)
-			return vim.fn.match(name, vim.fn.glob2regpat(query)) >= 0
+		ipairs(vim.fs.find(function(name, path)
+			-- name = basename, path = full path
+			local full_path = path .. "/" .. name
+
+			-- Convert glob to Lua pattern (more reliable than glob2regpat + match)
+			local pattern = vim.fn.glob2regpat(query)
+			return vim.fn.match(full_path, pattern) >= 0 or vim.fn.match(name, pattern) >= 0
 		end, {
 			path = cwd,
-			limit = 50,
+			limit = 100, -- increased a bit
 			type = "file",
 			hidden = true,
 		}))
 	do
-		-- Return paths relative to cwd for readability
-		table.insert(files, vim.fn.fnamemodify(file, ":~:."))
+		-- Return relative paths for cleaner output
+		local rel_path = vim.fn.fnamemodify(file, ":~:.")
+		table.insert(files, rel_path)
 	end
 
-	return { files = files, count = #files }
+	return {
+		files = files,
+		count = #files,
+		cwd = cwd,
+	}
 end
 
 return {
-	"find_files",
-	find_files,
-	"Recursively search for files in the current project.",
-	{
+	name = "find_files",
+	fn = find_files,
+	desc = "Recursively search for files in the current project.",
+	parameters = {
 		type = "object",
 		properties = {
 			query = {

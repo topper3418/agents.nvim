@@ -5,14 +5,23 @@ local M = {}
 
 -- @param buf buffer to render into
 -- @callback callback to set cursor after rendering (input_line, col)
-function M.render(buf, callback)
+-- @opts additional options for rendering, e.g. command_output to render command output after a tool call
+function M.render(buf, callback, opts)
 	-- unlock buffer for rendering
 	vim.api.nvim_buf_set_option(buf, "modifiable", true)
 	local lines = { "# agents.nvim Chat — chatting with Grok (xAI)", "" }
 
+	local renderer = require("agents.rendering")
+
 	-- Add previous messages
 	for _, msg in ipairs(require("agents.history").history) do
-		require("agents.rendering").msg.render(lines, msg, M.show_tool_results)
+		renderer.msg.render(lines, msg, { show_tool_results = M.show_tool_results })
+	end
+
+	-- if this is being called after a command output,
+	-- add the command output to the buffer
+	if opts and opts.command_output then
+		renderer.command.render_command_output(lines, opts.command_output)
 	end
 	table.insert(lines, "")
 

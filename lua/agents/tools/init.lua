@@ -47,12 +47,12 @@ function M.get_tool_list()
 end
 
 -- register all default tools
-local tools = {
+local default_tools = {
 	require("agents.tools.read_file"),
 	require("agents.tools.find_files"),
 }
-for _, tool in ipairs(tools) do
-	M.register(tool[1], tool[2], tool[3], tool[4])
+for _, tool in ipairs(default_tools) do
+	M.register(tool.name, tool.fn, tool.desc, tool.parameters)
 end
 
 return M
