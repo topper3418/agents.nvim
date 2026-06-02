@@ -1,7 +1,9 @@
-the user commands don't seem to go away when sent. 
-
 I need to start adding tools
 
 make a command for a chat window to replace current buffer
 
-make a tool call to see open buffers
+tool call output visibility appears to break the markdown formatting. Should fix that eventually
+
+I want to make it so that hitting enter in normal mode is actually what submits
+
+I want to make it so that the tool call small version still shows the args and some kind of hint about the output. then I will make it so that the tool call output command goes away, and you can scroll the tool calls and select them with space and it shows it to you in a popup.

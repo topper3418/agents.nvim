@@ -76,7 +76,6 @@ local function save_history()
 		return false
 	end
 
-	vim.notify("History saved to " .. file_path, vim.log.levels.INFO)
 	return true
 end
 
