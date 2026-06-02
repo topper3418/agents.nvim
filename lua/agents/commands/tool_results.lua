@@ -1,7 +1,7 @@
 -- lua/agents/commands/tool_results.lua
 -- shows or hides tool results in the chat history
 
-function tool_results(user_msg, buf, chat_object)
+local function tool_results(user_msg, buf, chat_object)
 	local command = user_msg:sub(2):lower()
 	local parts = vim.split(command, "%s+") -- split on whitespace
 	local cmd = parts[1]

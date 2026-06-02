@@ -1,3 +1,7 @@
 the user commands don't seem to go away when sent. 
 
 I need to start adding tools
+
+make a command for a chat window to replace current buffer
+
+make a tool call to see open buffers
