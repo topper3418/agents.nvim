@@ -4,20 +4,20 @@
 local function tool_results(user_msg, buf, chat_object)
 	local command = user_msg:sub(2):lower()
 	local parts = vim.split(command, "%s+") -- split on whitespace
-	local cmd = parts[1]
 	local arg = parts[2]
+	local props = require("agents.chat.properties")
 	if arg == "show" then
-		chat_object.show_tool_results = true
+		props.show_tool_results = true
 	elseif arg == "hide" then
-		chat_object.show_tool_results = false
+		props.show_tool_results = false
 	elseif arg == "toggle" or arg == nil then
-		chat_object.show_tool_results = not (chat_object.show_tool_results or false)
+		props.show_tool_results = not (props.show_tool_results or false)
 	else
 		vim.notify("Unknown tool-results option: " .. arg, vim.log.levels.WARN)
 		return
 	end
 	vim.cmd.redraw()
-	vim.notify("tool-results: " .. (chat_object.show_tool_results and "shown" or "hidden"))
+	vim.notify("tool-results: " .. (props.show_tool_results and "shown" or "hidden"))
 end
 
 return {

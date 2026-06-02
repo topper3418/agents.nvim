@@ -15,7 +15,7 @@ function M.render(buf, callback, opts)
 
 	-- Add previous messages
 	for _, msg in ipairs(require("agents.history").history) do
-		renderer.msg.render(lines, msg, { show_tool_results = M.show_tool_results })
+		renderer.msg.render(lines, msg)
 	end
 
 	-- if this is being called after a command output,

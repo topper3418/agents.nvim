@@ -17,9 +17,9 @@ function M.assistant(buf_lines, msg)
 	end
 end
 
-function M.tool(buf_lines, msg, show_tool_results)
+function M.tool(buf_lines, msg)
 	-- short message if tool results are hidden
-	if not show_tool_results then
+	if not require("agents.chat.properties").show_tool_results then
 		table.insert(buf_lines, "**Tool Result:** " .. (msg.tool_name or "unknown"))
 		return
 	end
@@ -63,7 +63,7 @@ function M.render(buf_lines, msg, opts)
 	elseif msg.role == "assistant" then
 		M.assistant(buf_lines, msg)
 	elseif msg.role == "tool" then
-		M.tool(buf_lines, msg, opts.show_tool_results)
+		M.tool(buf_lines, msg)
 	end
 	-- add a dividing two spaces and a dividng line after each message
 	table.insert(buf_lines, "")

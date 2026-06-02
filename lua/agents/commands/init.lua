@@ -34,7 +34,7 @@ function M.handle_command(user_msg, buf, chat_object)
 	elseif M.commands[cmd] then
 		return M.commands[cmd].fn(user_msg, buf, chat_object)
 	else
-		return { "Unknown command: " .. cmd, vim.log.levels.WARN }
+		return { "Unknown command: " .. cmd }
 	end
 end
 
