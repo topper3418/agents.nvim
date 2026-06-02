@@ -21,7 +21,7 @@ end
 local function reset_cursor()
 	local wins = vim.fn.win_findbuf(M.buf)
 	if #wins > 0 then
-		vim.api.nvim_win_set_cursor(wins[1], { require("agents.properties").input_line, 2 })
+		vim.api.nvim_win_set_cursor(wins[1], { vim.b[M.buf].input_line, 2 })
 	end
 end
 
@@ -37,7 +37,7 @@ end
 
 -- Send the current input and get a reply
 function M.send()
-	require("agents.chat.send").send(M.buf, function()
+	require("lua.agents.chat.submit").submit(M.buf, function()
 		vim.schedule(function()
 			require("agents.agent_loop").loop(M.buf, function()
 				M.render() -- re-render to show the new assistant message

@@ -34,8 +34,7 @@ function M.render(buf, callback, opts)
 
 	-- move cursor to the input line
 	local input_line = #lines
-
-	require("agents.properties").input_line = input_line
+	vim.b[buf].input_line = input_line
 	callback()
 end
 

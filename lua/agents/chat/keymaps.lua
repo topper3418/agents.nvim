@@ -8,20 +8,35 @@ function M.set(buf, send_callback)
 		return
 	end
 	vim.b[buf].agents_keymaps_set = true
-	-- Send on <CR> in NORMAL mode
-	vim.keymap.set("n", "<CR>", function()
-		vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
+	local function submit_buffer()
 		vim.schedule(function()
 			send_callback(buf)
 		end)
-	end, { buffer = buf, silent = true, desc = "Send message to Grok" })
+	end
+
+	-- Send on <CR> in NORMAL mode
+	vim.keymap.set("n", "<CR>", submit_buffer, {
+		buffer = buf,
+		silent = true,
+		desc = "Send message to Grok",
+	})
+
+	-- Submit on :w / :write (instead of any Enter mapping)
+	vim.bo[buf].buftype = "nowrite"
+	vim.api.nvim_create_autocmd("BufWriteCmd", {
+		buffer = buf,
+		callback = function()
+			vim.bo[buf].modified = false
+			submit_buffer()
+		end,
+	})
 
 	-- Smart modifiable toggle: only allow editing on the input line
 	vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
 		buffer = buf,
 		callback = function()
 			local cursor = vim.api.nvim_win_get_cursor(0)
-			local input_line = require("agents.properties").input_line or 1
+			local input_line = vim.b[buf].input_line or 1
 
 			-- If the cursor is above the input line, make the buffer unmodifiable to prevent edits.
 			vim.api.nvim_buf_set_option(buf, "modifiable", true) --cursor[1] >= input_line)
@@ -40,7 +55,7 @@ function M.set(buf, send_callback)
 	vim.api.nvim_create_autocmd("TextChangedI", {
 		buffer = buf,
 		callback = function()
-			local input_line = require("agents.properties").input_line or 1
+			local input_line = vim.b[buf].input_line or 1
 			local line = vim.api.nvim_buf_get_lines(buf, input_line - 1, input_line, false)[1] or ""
 			if not line:match("^> ") then
 				-- restore prompt without moving the cursor

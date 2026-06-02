@@ -20,7 +20,7 @@ local function step(buf, done)
 				local tool_name = call["function"].name
 				local args = vim.json.decode(call["function"].arguments or "{}") or {}
 
-				-- vim.api.nvim_buf_set_lines(buf, -1, -1, false, { "🛠️ Running: " .. tool_name })
+				vim.api.nvim_buf_set_lines(buf, -1, -1, false, { "🛠️ Running: " .. tool_name })
 				vim.cmd.redraw()
 				local result = require("agents.tools").call(tool_name, args)
 
@@ -32,7 +32,7 @@ local function step(buf, done)
 				})
 			end
 
-			vim.api.nvim_buf_set_lines(buf, -1, -1, false, { "Thinking (chaining)..." })
+			vim.api.nvim_buf_set_lines(buf, -1, -1, false, { "🧠 Thinking (chaining)..." })
 			step(buf, done) -- continue the loop
 		else
 			if message.content then
