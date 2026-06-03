@@ -1,5 +1,7 @@
 local M = {}
 
+local history = require("agents.history")
+
 local function step(buf, done)
 	require("agents.llm").chat(require("agents.history").history, function(message)
 		if not message then

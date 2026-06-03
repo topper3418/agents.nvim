@@ -16,7 +16,7 @@ function M.init_db()
 	-- Messages table (tool_calls stored as JSON blob for flexibility)
 	db.execute([[
     CREATE TABLE IF NOT EXISTS messages (
-      message_id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
       session_id INTEGER NOT NULL,
       role TEXT NOT NULL,
       content TEXT,
@@ -35,28 +35,24 @@ function M.init_db()
       tool_call_id TEXT NOT NULL,
       results TEXT,  -- JSON encoded
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY(message_id) REFERENCES messages(message_id)
+      FOREIGN KEY(message_id) REFERENCES messages(id)
     )
   ]])
 
 	-- Ensure at least one active session exists
-	local active = db.query("SELECT session_id FROM sessions WHERE is_active = 1 LIMIT 1")
+	local sessions = require("agents.history.sessions")
+	local active = sessions.get_active_session()
 	if not active or #active == 0 then
-		db.insert([[
-      INSERT INTO sessions (name, is_active)
-      VALUES ('default', 1)
-    ]])
-		local session_row = db.eval("SELECT session_id FROM sessions WHERE is_active = 1 LIMIT 1")
-		local sid = session_row[1].session_id
+		sessions.new_session("Default")
 
 		-- Add initial system prompt
-		db.execute(
-			[[
-      INSERT INTO messages (session_id, role, content)
-      VALUES (?, 'system', 'You are a helpful coding assistant inside Neovim.')
-    ]],
-			{ sid }
-		)
+		require("lua.agents.history.messages").add_message({
+			role = "system",
+			content = require("agents.history").system_prompt or [[
+      You are a helpful assistant inside of neovim. Use the tools presented to you, 
+      do not hallucinate, do not guess the contents of files.
+	]],
+		})
 	end
 end
 

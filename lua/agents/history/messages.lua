@@ -17,13 +17,14 @@ function M.add_message(message)
 		tool_calls_json = vim.json.encode(message.tool_calls)
 	end
 
-	db.execute(
+	local message_id = db.insert(
 		[[
 		INSERT INTO messages (session_id, role, content, tool_calls)
 		VALUES (?, ?, ?, ?)
 	]],
 		{ active_session.session_id, message.role, message.content or "", tool_calls_json }
 	)
+	return message_id
 end
 
 function M.get_messages_for_session(session_id)

@@ -5,7 +5,27 @@ local db_path = cwd .. "/.nvim/agents/history.db"
 -- Ensure directory exists
 vim.fn.mkdir(vim.fn.fnamemodify(db_path, ":h"), "p")
 
-local function run(sql)
+local function interpolate(sql, params)
+	if not params then
+		return sql
+	end
+
+	local i = 0
+	return (
+		sql:gsub("?", function()
+			i = i + 1
+			local val = params[i]
+			if type(val) == "string" then
+				return "'" .. val:gsub("'", "''") .. "'"
+			else
+				return tostring(val)
+			end
+		end)
+	)
+end
+
+local function run(sql, params)
+	sql = interpolate(sql, params)
 	local cmd = { "sqlite3", "-batch", db_path, sql }
 	local output = vim.fn.system(cmd)
 
@@ -16,20 +36,20 @@ local function run(sql)
 end
 
 -- For CREATE TABLE, UPDATE, DELETE, etc.
-function M.exec(sql)
-	run(sql)
+function M.exec(sql, params)
+	run(sql, params)
 end
 
 -- For INSERTs — returns the new row id
-function M.insert(sql)
-	run(sql)
+function M.insert(sql, params)
+	run(sql, params)
 	local id = run("SELECT last_insert_rowid();")
 	return tonumber(id)
 end
 
 -- Convenience for queries that return rows
-function M.query(sql)
-	local result = run(sql)
+function M.query(sql, params)
+	local result = run(sql, params)
 	if result == "" then
 		return {}
 	end
