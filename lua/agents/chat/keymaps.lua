@@ -17,13 +17,6 @@ function M.set(buf, send_callback)
 		end)
 	end
 
-	-- Send on <CR> in NORMAL mode
-	vim.keymap.set("n", "<CR>", submit_buffer, {
-		buffer = buf,
-		silent = true,
-		desc = "Send message to Grok",
-	})
-
 	-- Submit on write
 	vim.api.nvim_create_autocmd("BufWriteCmd", {
 		buffer = buf,
@@ -32,16 +25,6 @@ function M.set(buf, send_callback)
 			submit_buffer()
 		end,
 	})
-
-	-- Submit on :w / :write (instead of any Enter mapping)
-	-- vim.bo[buf].buftype = "nowrite"
-	-- vim.api.nvim_create_autocmd("BufWriteCmd", {
-	-- 	buffer = buf,
-	-- 	callback = function()
-	-- 		vim.bo[buf].modified = false
-	-- 		submit_buffer()
-	-- 	end,
-	-- })
 
 	-- Smart modifiable toggle: only allow editing on the input line
 	vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
@@ -76,13 +59,20 @@ function M.set(buf, send_callback)
 		end,
 	})
 
-	-- TODO: make this actually work
-	-- Quick normal-mode shortcut to jump to input and start typing
-	vim.keymap.set("n", "r", function()
-		local total_lines = vim.api.nvim_buf_line_count(buf)
-		vim.api.nvim_win_set_cursor(0, { total_lines, 2 })
-		vim.cmd("startinsert")
-	end, { buffer = buf, silent = true, desc = "Reply / jump to input" })
+	local function focus_input_then(keys)
+		local input_line = vim.b[buf].input_line or 1
+		local cursor = vim.api.nvim_win_get_cursor(0)
+		if cursor[1] < input_line then
+			vim.api.nvim_win_set_cursor(0, { input_line, 2 })
+		end
+		vim.api.nvim_feedkeys(keys, "n", false)
+	end
+
+	for _, key in ipairs({ "i", "I", "a", "A", "o", "O", "c", "C", "s", "S" }) do
+		vim.keymap.set("n", key, function()
+			focus_input_then(key)
+		end, { buffer = buf, silent = true })
+	end
 
 	-- Auto-enter insert mode the first time the window opens
 	vim.cmd("startinsert")
