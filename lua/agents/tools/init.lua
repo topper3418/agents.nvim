@@ -58,6 +58,7 @@ local default_tools = {
 	require("agents.tools.read_file"),
 	require("agents.tools.find_files"),
 	require("agents.tools.see_open_buffers"),
+	require("agents.tools.grep"),
 }
 for _, tool in ipairs(default_tools) do
 	M.register(tool.name, tool.fn, tool.desc, tool.parameters)
