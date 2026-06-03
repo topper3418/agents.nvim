@@ -1,10 +1,10 @@
 ## initial notes
 
- - [ ] init function should ensure the tables and add the system prompt
- - [ ] sessions table, session_id, name, created_at, is_active
- - [ ] robust function to select which session is active, there can be only one
- - [ ] messages table, role, content, tool_calls, session_id
- - [ ] tool calls table, id, tool_name, message_id, tool_call_id, results
+ - [/] init function should ensure the tables and add the system prompt
+ - [/] sessions table, session_id, name, created_at, is_active
+ - [/] robust function to select which session is active, there can be only one
+ - [/] messages table, role, content, tool_calls, session_id
+ - [/] tool calls table, id, tool_name, message_id, tool_call_id, results
  - [ ] instead of clear, it'll be /new. new_chat_chatid will be the name by default and it'll be made active
  - add message should be able to stay the same in the api
  - [ ] command to name the session, no args given lets the llm decide

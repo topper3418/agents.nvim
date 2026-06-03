@@ -40,9 +40,9 @@ function M.init_db()
   ]])
 
 	-- Ensure at least one active session exists
-	local active = db.eval("SELECT session_id FROM sessions WHERE is_active = 1 LIMIT 1")
+	local active = db.query("SELECT session_id FROM sessions WHERE is_active = 1 LIMIT 1")
 	if not active or #active == 0 then
-		db.execute([[
+		db.insert([[
       INSERT INTO sessions (name, is_active)
       VALUES ('default', 1)
     ]])
