@@ -18,6 +18,7 @@ function M.submit(buf, callback)
 	local user_msg = table.concat(raw, "\n"):gsub("^>%s*", ""):gsub("\n>%s*", "\n"):gsub("^%%%s*", "")
 	user_msg = vim.trim(user_msg)
 	if user_msg == "" then
+		vim.b[buf].is_sending = false
 		return
 	end
 
@@ -28,6 +29,7 @@ function M.submit(buf, callback)
 		require("agents.chat").render({
 			command_output = command_results,
 		})
+		vim.b[buf].is_sending = false
 		return
 	end
 
