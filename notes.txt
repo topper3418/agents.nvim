@@ -9,3 +9,7 @@ I want to make it so that the tool call small version still shows the args and s
 I should consider separating the history out of the agent loop to make it more extensible.
 
 Add session support, this will mean integration with sqlite and a bunch more commands
+
+make history db path configurable
+
+make 

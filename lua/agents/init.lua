@@ -36,7 +36,7 @@ function M.setup(opts)
 		vim.notify("⚠️  agents.nvim: api_key is not set in your Lazy config!", vim.log.levels.WARN)
 	end
 
-	require("agents.chat").history = {}
+	M.history.init_db()
 end
 
 return M

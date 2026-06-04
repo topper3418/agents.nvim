@@ -1,6 +1,6 @@
 local M = {}
 
-local db_path = cwd .. "/.nvim/agents/history.db"
+local db_path = vim.fn.getcwd() .. "/.nvim/agents/history.db"
 
 -- Ensure directory exists
 vim.fn.mkdir(vim.fn.fnamemodify(db_path, ":h"), "p")

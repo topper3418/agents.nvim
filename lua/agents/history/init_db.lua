@@ -4,7 +4,7 @@ local db = require("agents.history.db")
 
 function M.init_db()
 	-- Sessions table
-	db.execute([[
+	db.exec([[
     CREATE TABLE IF NOT EXISTS sessions (
       session_id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
@@ -14,7 +14,7 @@ function M.init_db()
   ]])
 
 	-- Messages table (tool_calls stored as JSON blob for flexibility)
-	db.execute([[
+	db.exec([[
     CREATE TABLE IF NOT EXISTS messages (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       session_id INTEGER NOT NULL,
