@@ -54,9 +54,9 @@ function M.set_active_session(session_id)
 		error("Session ID " .. session_id .. " does not exist")
 	end
 	-- Deactivate all sessions
-	db.execute("UPDATE sessions SET is_active = 0")
+	db.exec("UPDATE sessions SET is_active = 0")
 	-- Activate the selected session
-	db.execute("UPDATE sessions SET is_active = 1 WHERE session_id = ?", { session_id })
+	db.exec("UPDATE sessions SET is_active = 1 WHERE session_id = ?", { session_id })
 end
 
 function M.new_session(name)
@@ -72,7 +72,7 @@ function M.delete_session(session_id)
 		error("Session ID " .. session_id .. " does not exist")
 	end
 	-- Delete messages and tool calls associated with this session
-	db.execute(
+	db.exec(
 		[[
 		DELETE FROM tool_calls WHERE message_id IN (
 			SELECT message_id FROM messages WHERE session_id = ?
@@ -80,8 +80,8 @@ function M.delete_session(session_id)
 	]],
 		{ session_id }
 	)
-	db.execute("DELETE FROM messages WHERE session_id = ?", { session_id })
-	db.execute("DELETE FROM sessions WHERE session_id = ?", { session_id })
+	db.exec("DELETE FROM messages WHERE session_id = ?", { session_id })
+	db.exec("DELETE FROM sessions WHERE session_id = ?", { session_id })
 end
 
 function M.rename_session(session_id, new_name)
@@ -90,7 +90,7 @@ function M.rename_session(session_id, new_name)
 	if not session or #session == 0 then
 		error("Session ID " .. session_id .. " does not exist")
 	end
-	db.execute("UPDATE sessions SET name = ? WHERE session_id = ?", { new_name, session_id })
+	db.exec("UPDATE sessions SET name = ? WHERE session_id = ?", { new_name, session_id })
 end
 
 return M

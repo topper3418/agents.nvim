@@ -12,4 +12,4 @@ Add session support, this will mean integration with sqlite and a bunch more com
 
 make history db path configurable
 
-make 
+make it so that the user can easily swap out models

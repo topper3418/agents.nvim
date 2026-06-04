@@ -16,7 +16,6 @@ M.chat_history = {}
 M.active_session = nil
 
 function M.refresh()
-	M.init_db()
 	M.active_session = M.sessions.get_active_session()
 	M.chat_history = M.messages.get_messages_for_session(M.active_session.session_id)
 end
