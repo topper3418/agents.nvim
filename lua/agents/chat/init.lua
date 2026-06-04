@@ -5,6 +5,8 @@ local M = {}
 
 M.window = require("agents.chat.window")
 
+local history = require("agents.history")
+
 -- Opens a new chat buffer in the configured style
 function M.open(config)
 	M.buf = M.window.acquire_buffer()
@@ -37,7 +39,7 @@ end
 
 -- Send the current input and get a reply
 function M.send()
-	require("lua.agents.chat.submit").submit(M.buf, function()
+	require("agents.chat.submit").submit(M.buf, function()
 		vim.schedule(function()
 			require("agents.agent_loop").loop(M.buf, function()
 				M.render() -- re-render to show the new assistant message

@@ -21,21 +21,10 @@ function M.init_db()
       role TEXT NOT NULL,
       content TEXT,
       tool_calls TEXT,  -- JSON encoded
+      tool_call_id TEXT, -- If this is a tool call message
+      tool_name TEXT, -- If this is a tool call message
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY(session_id) REFERENCES sessions(session_id)
-    )
-  ]])
-
-	-- Tool calls table
-	db.execute([[
-    CREATE TABLE IF NOT EXISTS tool_calls (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      message_id INTEGER NOT NULL,
-      tool_name TEXT NOT NULL,
-      tool_call_id TEXT NOT NULL,
-      results TEXT,  -- JSON encoded
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY(message_id) REFERENCES messages(id)
     )
   ]])
 
@@ -48,6 +37,7 @@ function M.init_db()
 		-- Add initial system prompt
 		require("lua.agents.history.messages").add_message({
 			role = "system",
+			-- system prompt will throw an error if it cant be loaded for some reason so this is just so the app is runnable if I screw that up in dev
 			content = require("agents.history").system_prompt or [[
       You are a helpful assistant inside of neovim. Use the tools presented to you, 
       do not hallucinate, do not guess the contents of files.

@@ -1,8 +1,15 @@
 -- lua/agents/chat/submit.lua
--- Handles the logic of a submission being triggered on the buffer
+-- Handles the logic of a submission being triggered on the buffer.
 
 local M = {}
 
+--- This function will:
+--- 1. Get the user input from the buffer (everything after the last prompt)
+--- 2. Add the user message to the history
+--- 3. Show a "thinking..." message in the buffer
+--- 4. Call the callback to trigger the agent response
+--- @param buf buffer the buffer number of the chat buffer
+--- @param callback function the function to call after submission is processed (e.g. to trigger the agent loop)
 function M.submit(buf, callback)
 	-- guard against double sends
 	if vim.b[buf].is_sending then
@@ -34,7 +41,7 @@ function M.submit(buf, callback)
 	end
 
 	-- normal message Add user message to history
-	require("lua.agents.history.init").add_message({
+	require("agents.history").messages.add_message({
 		role = "user",
 		content = user_msg,
 	})
