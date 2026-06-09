@@ -5,25 +5,30 @@ local db_path = vim.fn.getcwd() .. "/.nvim/agents/history.db"
 -- Ensure directory exists
 vim.fn.mkdir(vim.fn.fnamemodify(db_path, ":h"), "p")
 
+local function quote(val)
+	if val == nil then
+		return "NULL"
+	elseif type(val) == "boolean" then
+		return val and "1" or "0"
+	elseif type(val) == "number" then
+		return tostring(val)
+	elseif type(val) == "string" then
+		return "'" .. val:gsub("'", "''") .. "'"
+	else
+		return "'" .. tostring(val):gsub("'", "''") .. "'"
+	end
+end
+
 local function interpolate(sql, params)
 	if not params then
 		return sql
 	end
 
 	local i = 0
-	return (
-		sql:gsub("?", function()
-			i = i + 1
-			local val = params[i]
-			if val == nil then
-				return "NULL"
-			elseif type(val) == "string" then
-				return "'" .. val:gsub("'", "''") .. "'"
-			else
-				return tostring(val)
-			end
-		end)
-	)
+	return sql:gsub("%?", function()
+		i = i + 1
+		return quote(params[i])
+	end)
 end
 
 local function run(sql, params, as_json)
