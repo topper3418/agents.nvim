@@ -28,7 +28,7 @@ end
 
 local function run(sql, params)
 	sql = interpolate(sql, params)
-	local cmd = { "sqlite3", "-batch", "-noheader", "-list", db_path, sql }
+	local cmd = { "sqlite3", "-batch", "-noheader", "-json", db_path, sql }
 	local output = vim.fn.system(cmd)
 
 	if vim.v.shell_error ~= 0 then
@@ -56,11 +56,11 @@ function M.query(sql, params)
 		return {}
 	end
 
-	local rows = {}
-	for line in vim.gsplit(result, "\n", { plain = true }) do
-		table.insert(rows, vim.split(line, "|", { plain = true }))
+	local ok, decoded = pcall(vim.json.decode, result)
+	if not ok or type(decoded) ~= "table" then
+		return {}
 	end
-	return rows
+	return decoded
 end
 
 return M

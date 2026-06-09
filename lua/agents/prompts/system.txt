@@ -12,3 +12,5 @@ Never guess file contents. Be concise.
 Call out to the user if a tool call fails, or is giving unexpected results. 
 
 Double check any call outs about line numbers and filenames, do not cause confusion there.
+
+When giving the user a filepath, please make sure to give the full project path to the file and put it in its own code block for easy copying, particularly when describing the current or proposed contents of a file. 

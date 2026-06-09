@@ -13,3 +13,5 @@ Add session support, this will mean integration with sqlite and a bunch more com
 make history db path configurable
 
 make it so that the user can easily swap out models
+
+make it scroll to the bottom while tool calling

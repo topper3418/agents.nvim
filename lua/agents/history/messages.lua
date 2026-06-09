@@ -17,6 +17,7 @@ function M.add_message(message)
 	if message.tool_calls then
 		tool_calls_json = vim.json.encode(message.tool_calls)
 	end
+	print("session: " .. tostring(active_session))
 	-- db insert
 	local message_id = db.insert(
 		[[
@@ -39,7 +40,7 @@ end
 function M.get_messages_for_session(session_id)
 	local rows = db.query(
 		[[
-		SELECT role, content, tool_calls, tool_call_id, tool_name, created_at
+		SELECT id, role, content, tool_calls, tool_call_id, tool_name, created_at
 		FROM messages
 		WHERE session_id = ?
 		ORDER BY created_at ASC
@@ -50,22 +51,24 @@ function M.get_messages_for_session(session_id)
 	local messages = {}
 	for _, row in ipairs(rows) do
 		local tool_calls = nil
-		if row[4] then
-			local success, decoded = pcall(vim.json.decode, row[4])
+		local tc = row.tool_calls
+		if tc and tc ~= "NULL" and tc ~= "" then
+			local success, decoded = pcall(vim.json.decode, tc)
 			if success then
 				tool_calls = decoded
 			else
-				vim.notify("Failed to decode tool_calls JSON for message_id " .. row[1], vim.log.levels.WARN)
+				vim.notify("Failed to decode tool_calls JSON for message_id " .. row.id, vim.log.levels.WARN)
 			end
 		end
 
 		table.insert(messages, {
-			role = row[1],
-			content = row[2],
+			id = tonumber(row.id),
+			role = row.role,
+			content = row.content,
 			tool_calls = tool_calls,
-			tool_call_id = row[5],
-			tool_name = row[6],
-			created_at = row[7],
+			tool_call_id = row.tool_call_id,
+			tool_name = row.tool_name,
+			created_at = row.created_at,
 		})
 	end
 

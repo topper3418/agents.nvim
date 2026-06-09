@@ -10,10 +10,10 @@ function M.list_sessions()
 	local sessions = {}
 	for _, row in ipairs(rows) do
 		table.insert(sessions, {
-			session_id = tonumber(row[1]),
-			name = row[2],
-			created_at = row[3],
-			is_active = row[4] == "1",
+			session_id = tonumber(row.session_id),
+			name = row.name,
+			created_at = row.created_at,
+			is_active = row.is_active == "1",
 		})
 	end
 	return sessions
@@ -27,10 +27,10 @@ function M.get_session(session_id)
 	end
 	local row = rows[1]
 	return {
-		session_id = tonumber(row[1]),
-		name = row[2],
-		created_at = row[3],
-		is_active = row[4] == "1",
+		session_id = tonumber(row.session_id),
+		name = row.name,
+		created_at = row.created_at,
+		is_active = row.is_active == "1",
 	}
 end
 
@@ -40,10 +40,11 @@ function M.get_active_session()
 		return nil
 	end
 	local row = rows[1]
+	print("active session: " .. tostring(row.session_id) .. " - " .. tostring(row.name))
 	return {
-		session_id = tonumber(row[1]),
-		name = row[2],
-		created_at = row[3],
+		session_id = tonumber(row.session_id),
+		name = row.name,
+		created_at = row.created_at,
 	}
 end
 

@@ -31,11 +31,11 @@ function M.init_db()
 	-- Ensure at least one active session exists
 	local sessions = require("agents.history.sessions")
 	local active = sessions.get_active_session()
-	if not active or #active == 0 then
+	if not active then
 		sessions.new_session("Default")
 
 		-- Add initial system prompt
-		require("lua.agents.history.messages").add_message({
+		require("agents.history.messages").add_message({
 			role = "system",
 			-- system prompt will throw an error if it cant be loaded for some reason so this is just so the app is runnable if I screw that up in dev
 			content = require("agents.history").system_prompt or [[
