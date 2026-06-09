@@ -3,13 +3,18 @@
 
 local M = {}
 
+local history = require("agents.history")
+
 -- @param buf buffer to render into
 -- @callback callback to set cursor after rendering (no args)
 -- @opts additional options for rendering, e.g. command_output to render command output after a tool call
 function M.render(buf, callback, opts)
 	-- unlock buffer for rendering
+	local current_session = history.sessions.get_active_session()
+	local current_session_name = current_session and current_session.name or "No Session"
 	vim.api.nvim_buf_set_option(buf, "modifiable", true)
-	local lines = { "# agents.nvim Chat — chatting with Grok (xAI)", "" }
+
+	local lines = { "# agents.nvim Chat — " .. current_session_name, "" }
 
 	local renderer = require("agents.rendering")
 

@@ -40,7 +40,6 @@ function M.get_active_session()
 		return nil
 	end
 	local row = rows[1]
-	print("active session: " .. tostring(row.session_id) .. " - " .. tostring(row.name))
 	return {
 		session_id = tonumber(row.session_id),
 		name = row.name,
@@ -50,6 +49,7 @@ end
 
 function M.set_active_session(session_id)
 	-- ensure the session exists
+	print("Setting active session to ID: " .. tostring(session_id))
 	local session = M.get_session(session_id)
 	if not session then
 		error("Session ID " .. session_id .. " does not exist")

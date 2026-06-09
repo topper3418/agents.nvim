@@ -10,7 +10,7 @@ function M.register_command(cmd, fn, desc)
 end
 
 local default_commands = {
-	require("agents.commands.clear_history"),
+	require("agents.commands.new_session"),
 	require("agents.commands.tool_results"),
 }
 

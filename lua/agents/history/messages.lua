@@ -52,7 +52,7 @@ function M.get_messages_for_session(session_id)
 	for _, row in ipairs(rows) do
 		local tool_calls = nil
 		local tc = row.tool_calls
-		if tc and tc ~= "NULL" and tc ~= "" then
+		if type(tc) == "string" and tc ~= "" and tc ~= "NULL" then
 			local success, decoded = pcall(vim.json.decode, tc)
 			if success then
 				tool_calls = decoded

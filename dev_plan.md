@@ -10,8 +10,7 @@ The foundation must be excellent codebase understanding before we add powerful e
 ## Current Status (as of May 25, 2026)
 - Basic chat buffer with float/split support
 - Working agent loop with tool chaining
-- `read_file` and `find_files` tools (with Telescope support)
-- Tool calling working with xAI/Grok
+- `read_file` and `find_files` tools (with Telescope support) Tool calling working with xAI/Grok
 - Basic configuration and keymaps
 
 ---

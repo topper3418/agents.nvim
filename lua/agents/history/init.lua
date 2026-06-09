@@ -20,4 +20,7 @@ function M.refresh()
 	M.chat_history = M.messages.get_messages_for_session(M.active_session.session_id)
 end
 
+-- refresh once at startup
+M.refresh()
+
 return M

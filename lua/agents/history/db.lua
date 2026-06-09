@@ -26,9 +26,11 @@ local function interpolate(sql, params)
 	)
 end
 
-local function run(sql, params)
+local function run(sql, params, as_json)
+	as_json = as_json ~= false -- default to true
 	sql = interpolate(sql, params)
-	local cmd = { "sqlite3", "-batch", "-noheader", "-json", db_path, sql }
+	local format_flag = as_json and "-json" or "-list"
+	local cmd = { "sqlite3", "-batch", "-noheader", format_flag, db_path, sql }
 	local output = vim.fn.system(cmd)
 
 	if vim.v.shell_error ~= 0 then
@@ -45,7 +47,8 @@ end
 -- For INSERTs — returns the new row id
 function M.insert(sql, params)
 	sql = sql .. "; SELECT last_insert_rowid();"
-	local out = run(sql, params) -- one process
+	local out = run(sql, params, false) -- one process
+	print("db.insert: raw='" .. out .. "'")
 	return tonumber(out)
 end
 
