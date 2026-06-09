@@ -17,9 +17,11 @@ function M.render(buf, callback, opts)
 	local lines = { "# agents.nvim Chat — " .. current_session_name, "" }
 
 	local renderer = require("agents.rendering")
+	local history = require("agents.history")
 
 	-- Add previous messages
-	for _, msg in ipairs(require("agents.history").chat_history) do
+	history.refresh()
+	for _, msg in ipairs(history.chat_history) do
 		renderer.msg.render(lines, msg)
 	end
 

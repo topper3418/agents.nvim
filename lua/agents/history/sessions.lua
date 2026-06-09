@@ -49,7 +49,6 @@ end
 
 function M.set_active_session(session_id)
 	-- ensure the session exists
-	print("Setting active session to ID: " .. tostring(session_id))
 	local session = M.get_session(session_id)
 	if not session then
 		error("Session ID " .. session_id .. " does not exist")
@@ -72,15 +71,7 @@ function M.delete_session(session_id)
 	if not session or #session == 0 then
 		error("Session ID " .. session_id .. " does not exist")
 	end
-	-- Delete messages and tool calls associated with this session
-	db.exec(
-		[[
-		DELETE FROM tool_calls WHERE message_id IN (
-			SELECT message_id FROM messages WHERE session_id = ?
-		)
-	]],
-		{ session_id }
-	)
+	-- Delete messages associated with this session
 	db.exec("DELETE FROM messages WHERE session_id = ?", { session_id })
 	db.exec("DELETE FROM sessions WHERE session_id = ?", { session_id })
 end

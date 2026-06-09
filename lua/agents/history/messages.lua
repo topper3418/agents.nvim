@@ -17,7 +17,6 @@ function M.add_message(message)
 	if message.tool_calls then
 		tool_calls_json = vim.json.encode(message.tool_calls)
 	end
-	print("session: " .. tostring(active_session))
 	-- db insert
 	local message_id = db.insert(
 		[[
@@ -33,7 +32,6 @@ VALUES (?, ?, ?, ?, ?, ?)
 			message.tool_name,
 		}
 	)
-	require("agents.history").refresh() -- refresh cache after insert
 	return message_id
 end
 

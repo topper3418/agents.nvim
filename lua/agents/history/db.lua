@@ -48,7 +48,6 @@ end
 function M.insert(sql, params)
 	sql = sql .. "; SELECT last_insert_rowid();"
 	local out = run(sql, params, false) -- one process
-	print("db.insert: raw='" .. out .. "'")
 	return tonumber(out)
 end
 
