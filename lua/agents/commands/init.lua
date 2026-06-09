@@ -11,7 +11,9 @@ end
 
 local default_commands = {
 	require("agents.commands.new_session"),
+	require("agents.commands.list_sessions"),
 	require("agents.commands.tool_results"),
+	require("agents.commands.switch_session"),
 }
 
 for _, cmd in ipairs(default_commands) do
