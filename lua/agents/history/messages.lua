@@ -73,4 +73,41 @@ function M.get_messages_for_session(session_id)
 	return messages
 end
 
+-- helper function to get the tool call based on its id.
+-- searches the tool call column for the id, then queries for that tool
+-- call and returns the json object
+function M.get_tool_call(tool_call_id)
+	local rows = db.query(
+		[[
+		SELECT tool_calls
+		FROM messages
+		WHERE tool_calls LIKE '%' || ? || '%'
+	]],
+		{ tool_call_id }
+	)
+
+	if #rows == 0 then
+		return nil
+	end
+
+	local tc = rows[1].tool_calls
+	if type(tc) == "string" and tc ~= "" and tc ~= "NULL" then
+		local success, decoded = pcall(vim.json.decode, tc)
+		if success then
+			-- this should be an array of tool calls, so iterate until
+			-- the id matches, then return it
+			for _, tool_call in ipairs(decoded) do
+				if tool_call.id == tool_call_id then
+					return tool_call
+				end
+			end
+		else
+			vim.notify("Failed to decode tool_calls JSON for tool_call_id " .. tool_call_id, vim.log.levels.WARN)
+			return nil
+		end
+	else
+		return nil
+	end
+end
+
 return M

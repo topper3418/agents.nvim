@@ -17,20 +17,29 @@ function M.assistant(buf_lines, msg)
 	end
 end
 
+local history = require("agents.history")
+
 function M.tool(buf_lines, msg)
+	local tool_call = history.messages.get_tool_call(msg.tool_call_id) or {}
+	local args = vim.json.decode((tool_call["function"] or {}).arguments or "{}") or {}
+	local name = msg.tool_name or "unknown"
 	-- short message if tool results are hidden
-	if not require("lua.agents.properties").show_tool_results then
-		table.insert(buf_lines, "**Tool Result:** " .. (msg.tool_name or "unknown"))
+	if not require("agents.properties").show_tool_results then
+		local result_len = #tostring(msg.content)
+		table.insert(
+			buf_lines,
+			"*Tool Result:* " .. name .. "(" .. (args and #args or "") .. ") => " .. result_len .. " chars"
+		)
 		return
 	end
 	table.insert(buf_lines, "**Tool Result:**")
 	local ok, decoded = pcall(vim.json.decode, msg.content)
 	-- show the tool that was called
-	table.insert(buf_lines, "*Tool:* " .. (msg.tool_name or "unknown"))
+	table.insert(buf_lines, "*Tool:* " .. name)
 	-- show the args given
 	table.insert(buf_lines, "*Args:*")
-	for _, line in ipairs(vim.split(msg.raw_arguments or "{}", "\n")) do
-		table.insert(buf_lines, line)
+	for key, value in pairs(args) do
+		table.insert(buf_lines, tostring(key) .. ": " .. value)
 	end
 	-- show the results
 	table.insert(buf_lines, "*Results:*")

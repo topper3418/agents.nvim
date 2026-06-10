@@ -5,7 +5,7 @@ local function tool_results(user_msg, buf, chat_object)
 	local command = user_msg:sub(2):lower()
 	local parts = vim.split(command, "%s+") -- split on whitespace
 	local arg = parts[2]
-	local props = require("lua.agents.properties")
+	local props = require("agents.properties")
 	if arg == "show" then
 		props.show_tool_results = true
 	elseif arg == "hide" then

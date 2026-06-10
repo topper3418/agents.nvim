@@ -1,6 +1,6 @@
 local M = {}
 
-M.msg = require("lua.agents.rendering.message")
-M.command = require("lua.agents.rendering.command")
+M.msg = require("agents.rendering.message")
+M.command = require("agents.rendering.command")
 
 return M
