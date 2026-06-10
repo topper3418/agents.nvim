@@ -62,6 +62,7 @@ end
 function M.new_session(name)
 	local new_session_id = db.insert("INSERT INTO sessions (name, is_active) VALUES (?, 0)", { name })
 	M.set_active_session(new_session_id)
+	require("agents.history").messages.add_system_prompt()
 	return new_session_id
 end
 

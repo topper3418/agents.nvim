@@ -35,14 +35,7 @@ function M.init_db()
 		sessions.new_session("Default")
 
 		-- Add initial system prompt
-		require("agents.history.messages").add_message({
-			role = "system",
-			-- system prompt will throw an error if it cant be loaded for some reason so this is just so the app is runnable if I screw that up in dev
-			content = require("agents.history").system_prompt or [[
-      You are a helpful assistant inside of neovim. Use the tools presented to you, 
-      do not hallucinate, do not guess the contents of files.
-	]],
-		})
+		require("agents.history.messages").add_system_prompt()
 	end
 end
 

@@ -73,6 +73,14 @@ function M.get_messages_for_session(session_id)
 	return messages
 end
 
+function M.add_system_prompt(content)
+	content = content or require("agents.history").system_prompt
+	return M.add_message({
+		role = "system",
+		content = content,
+	})
+end
+
 -- helper function to get the tool call based on its id.
 -- searches the tool call column for the id, then queries for that tool
 -- call and returns the json object

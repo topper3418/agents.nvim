@@ -1,5 +1,3 @@
-I need to start adding tools
-
 make a command for a chat window to replace current buffer
 
 tool call output visibility appears to break the markdown formatting. Should fix that eventually

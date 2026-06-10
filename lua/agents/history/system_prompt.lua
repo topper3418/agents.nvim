@@ -1,7 +1,9 @@
 -- lua/agents/history/system_prompt.lua
 -- Loads the system prompt from a text file in the plugin's prompts directory
 
-local function get_system_prompt()
+local M = {}
+
+function M.get_system_prompt()
 	local script_path = debug.getinfo(1, "S").source:sub(2)
 	local plugin_root = vim.fn.fnamemodify(script_path, ":h:h")
 	local prompt_path = plugin_root .. "/prompts/system.txt"
@@ -17,6 +19,4 @@ local function get_system_prompt()
 	return vim.trim(content)
 end
 
-return {
-	get_system_prompt = get_system_prompt,
-}
+return M
